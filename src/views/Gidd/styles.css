@@ -1,0 +1,9 @@
+.gidd {
+    display: flex;
+    margin: auto;
+    background-color: var(--color-foreground);
+    width: 100vw;
+
+    --color-conflict: #ed7d31;
+    --color-disaster: #4472c4;
+}

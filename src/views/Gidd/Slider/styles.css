@@ -1,0 +1,4 @@
+.slider-container {
+    padding: var(--spacing-extra-large) var(--spacing-small) 0 var(--spacing-small);
+    min-width: 196px;
+}
