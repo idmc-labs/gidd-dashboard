@@ -1,8 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import { _cs } from '@togglecorp/fujs';
+import React, { useMemo, useState, useCallback } from 'react';
+import {
+    _cs,
+    sum,
+    isDefined,
+    unique,
+} from '@togglecorp/fujs';
 import {
     MultiSelectInput,
     Button,
+    createNumberColumn,
+    Table,
+    Pager,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -12,6 +20,10 @@ import {
     PurgeNull,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
+
+import { createTextColumn } from '#components/tableHelpers';
+import { useRequest } from '#utils/request';
+import { MultiResponse } from '#utils/common';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
@@ -43,6 +55,19 @@ const defaultFormValues: FormType = {
     countries: [],
 };
 
+interface ConflictData {
+    iso3: string;
+    // eslint-disable-next-line camelcase
+    geo_name: string;
+    year: string;
+    // eslint-disable-next-line camelcase
+    stock_displacement?: number;
+    // eslint-disable-next-line camelcase
+    new_displacements?: number;
+}
+
+const conflictItemKeySelector = (d: ConflictData) => `${d.iso3}-${d.year}`;
+
 interface Item {
     key: string;
     value: string;
@@ -66,21 +91,6 @@ const regions: Item[] = [
     },
 ];
 
-const countries: Item[] = [
-    {
-        key: '1',
-        value: 'Nepal',
-    },
-    {
-        key: '2',
-        value: 'India',
-    },
-    {
-        key: '3',
-        value: 'Switzerland',
-    },
-];
-
 interface Props {
     className?: string;
     onSelectedPageChange: (pageType: PageType) => void;
@@ -101,6 +111,8 @@ function Conflict(props: Props) {
     } = useForm(defaultFormValues, schema);
 
     const [finalFormValue, setFinalFormValue] = useState<FilterFields>(defaultFormValues);
+    const [activePage, setActivePage] = useState<number>(1);
+    const [pageSize, setPageSize] = useState<number>(10);
 
     const handleBackButton = useCallback(() => {
         onSelectedPageChange('map');
@@ -110,9 +122,109 @@ function Conflict(props: Props) {
         setFinalFormValue(finalValue);
     }, []);
 
-    const noOfCountries = 67;
-    const noTotal = 120700000;
-    const noAsOfEnd = 45700000;
+    const {
+        response,
+    } = useRequest<MultiResponse<ConflictData>>({
+        url: 'https://api.idmcdb.org/api/conflict_data',
+        query: {
+            ci: 'IDMCWSHSOLO009',
+        },
+        method: 'GET',
+    });
+
+    const countriesList = useMemo(() => {
+        if (!response?.results) {
+            return [];
+        }
+        return unique(
+            response.results.filter((d) => isDefined(d.geo_name),
+                (d: ConflictData) => d.iso3),
+        ).map((d) => ({
+            key: d.iso3,
+            value: d.geo_name,
+        }));
+    }, [response?.results]);
+
+    const {
+        totalCount,
+        noOfCountries,
+        filteredData,
+        noTotal,
+        noAsOfEnd,
+    } = useMemo(() => {
+        if (!response?.results) {
+            return {
+                filteredData: [],
+                noOfCountries: 0,
+                totalCount: 0,
+                noTotal: 0,
+                noAsOfEnd: 0,
+            };
+        }
+        const newFilteredData = response.results.filter((d) => (
+            (
+                Number(d.year) >= finalFormValue.years[0]
+                && Number(d.year) <= finalFormValue.years[1]
+            ) && (
+                finalFormValue.countries.length === 0
+                || finalFormValue.countries.indexOf(d.iso3) !== -1
+            )
+        ));
+        const totalNewDisplacements = sum(
+            newFilteredData.map((d) => d.new_displacements).filter(isDefined),
+        );
+        const totalStock = sum(
+            newFilteredData
+                .filter((d) => Number(d.year) === finalFormValue.years[1])
+                .map((d) => d.stock_displacement).filter(isDefined),
+        );
+        return {
+            filteredData: newFilteredData,
+            noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
+            totalCount: newFilteredData.length,
+            noTotal: totalNewDisplacements,
+            noAsOfEnd: totalStock,
+        };
+    }, [response?.results, finalFormValue]);
+
+    const paginatedData = useMemo(() => {
+        const finalPaginatedData = [...filteredData];
+        finalPaginatedData.splice(0, (activePage - 1) * pageSize);
+        finalPaginatedData.length = pageSize;
+        return finalPaginatedData;
+    }, [activePage, pageSize, filteredData]);
+
+    const columns = useMemo(
+        () => ([
+            createTextColumn<ConflictData, string>(
+                'iso3',
+                'ISO3',
+                (item) => item.iso3,
+                { sortable: true },
+            ),
+            createTextColumn<ConflictData, string>(
+                'name',
+                'Name',
+                (item) => item.geo_name,
+            ),
+            createNumberColumn<ConflictData, string>(
+                'year',
+                'Year',
+                (item) => Number(item.year),
+            ),
+            createNumberColumn<ConflictData, string>(
+                'stockDisplacement',
+                'Conflict Stock Displacement',
+                (item) => item.stock_displacement,
+            ),
+            createNumberColumn<ConflictData, string>(
+                'newDisplacement',
+                'Conflict New Displacement',
+                (item) => item.new_displacements,
+            ),
+        ]),
+        [],
+    );
 
     return (
         <div className={_cs(className, styles.conflict)}>
@@ -140,16 +252,18 @@ function Conflict(props: Props) {
                         labelSelector={inputValueSelector}
                         value={value.regions}
                         onChange={onValueChange}
+                        optionsPopupClassName={styles.popup}
                     />
                     <MultiSelectInput
                         name="countries"
                         className={styles.filter}
                         label="Countries"
-                        options={countries}
+                        options={countriesList}
                         keySelector={inputKeySelector}
                         labelSelector={inputValueSelector}
                         value={value.countries}
                         onChange={onValueChange}
+                        optionsPopupClassName={styles.popup}
                     />
                     <Slider
                         className={_cs(styles.slider, styles.filter)}
@@ -201,6 +315,23 @@ function Conflict(props: Props) {
                             size="medium"
                         />
                     </div>
+                </div>
+                <div className={styles.tableContainer}>
+                    <Table
+                        data={paginatedData}
+                        className={styles.table}
+                        keySelector={conflictItemKeySelector}
+                        columns={columns}
+                    />
+                </div>
+                <div className={styles.footerContainer}>
+                    <Pager
+                        activePage={activePage}
+                        itemsCount={totalCount}
+                        maxItemsPerPage={pageSize}
+                        onActivePageChange={setActivePage}
+                        onItemsPerPageChange={setPageSize}
+                    />
                 </div>
             </div>
         </div>

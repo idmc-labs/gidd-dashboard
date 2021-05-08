@@ -39,10 +39,6 @@
             .info-box {
                 flex-basis: 40%;
 
-                .numeral-large {
-                    font-size: 40px;
-                }
-
                 .inline-block {
                     display: flex;
 

@@ -1,0 +1,16 @@
+.status {
+    .signed-off-icon {
+        color: var(--color-success);
+        font-size: var(--font-size-large);
+    }
+
+    .reviewed-icon {
+        color: var(--color-accent);
+        font-size: var(--font-size-large);
+    }
+
+    .under-review-icon {
+        color: var(--color-warning);
+        font-size: var(--font-size-large);
+    }
+}

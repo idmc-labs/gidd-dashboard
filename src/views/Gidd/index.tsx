@@ -15,7 +15,7 @@ export type PageType = 'map' | 'conflict' | 'disaster';
 
 function Gidd(props: Props) {
     const { className } = props;
-    const [selectedPage, setSelectedPage] = useState<PageType>('conflict');
+    const [selectedPage, setSelectedPage] = useState<PageType>('disaster');
 
     return (
         <div className={_cs(className, styles.gidd)}>

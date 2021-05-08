@@ -49,6 +49,7 @@
         }
 
         .information-bar {
+            flex-shrink: 0;
             border-bottom: var(--width-separator-thin) solid var(--color-separator);
 
             .info-heading {
@@ -65,5 +66,25 @@
                 }
             }
         }
+
+        .table-container {
+            flex-grow: 1;
+            padding: var(--spacing-medium);
+
+            .table {
+                width: 100%;
+            }
+        }
+
+        .footer-container {
+            display: flex;
+            flex-shrink: 0;
+            justify-content: flex-end;
+            padding: var(--spacing-medium);
+        }
     }
+}
+
+.popup {
+    z-index: 11;
 }

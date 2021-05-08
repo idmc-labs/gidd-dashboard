@@ -68,14 +68,13 @@ function MapDashboard(props: Props) {
                 </div>
                 <div className={styles.rightContainer}>
                     <div className={styles.infoBox}>
-                        <h2 className={styles.subHeading}>
+                        <h2>
                             New Displacement 2020
                         </h2>
                         <NumberBlock
                             label="Total"
                             value={newDisplacementTotal}
                             variant="normal"
-                            className={styles.largeNumberBlock}
                             size="large"
                         />
                         <div className={styles.inlineBlock}>
@@ -87,7 +86,6 @@ function MapDashboard(props: Props) {
                                 size="medium"
                             />
                             <NumberBlock
-                                className={styles.numeralMedium}
                                 label="Disasters"
                                 subLabel={`In ${newDisastersCountriesCount} countries and territories`}
                                 value={newDisasterTotal}
@@ -97,14 +95,13 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                     <div className={styles.infoBox}>
-                        <h2 className={styles.subHeading}>
+                        <h2>
                             Total Number of IDPs
                         </h2>
                         <NumberBlock
                             label="Total"
                             value={totalIdpCount}
                             variant="normal"
-                            className={styles.largeNumberBlock}
                             size="large"
                         />
                         <div className={styles.inlineBlock}>
@@ -116,7 +113,6 @@ function MapDashboard(props: Props) {
                                 size="medium"
                             />
                             <NumberBlock
-                                className={styles.numeralMedium}
                                 label="Disasters"
                                 subLabel={`In ${idpDisasterCountriesCount} countries and territories`}
                                 value={totalIdpDisasterCount}
@@ -126,7 +122,7 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                     <div className={styles.downloadBox}>
-                        <h3 className={styles.subHeading}>
+                        <h3>
                             Download IDMC Dataset
                         </h3>
                         <a

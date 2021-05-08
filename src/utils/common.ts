@@ -55,3 +55,9 @@ export function mergeBbox(bboxes: GeoJSON.BBox[]) {
     const maxBounds = bbox(combinedPolygons);
     return maxBounds as Bounds;
 }
+
+export interface MultiResponse<T> {
+    limit: number;
+    total: number;
+    results: T[];
+}
