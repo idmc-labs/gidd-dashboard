@@ -4,6 +4,8 @@ import {
     sum,
     isDefined,
     unique,
+    compareString,
+    compareNumber,
 } from '@togglecorp/fujs';
 import {
     MultiSelectInput,
@@ -11,6 +13,8 @@ import {
     createNumberColumn,
     Table,
     Pager,
+    SortContext,
+    useSortState,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -114,6 +118,9 @@ function Conflict(props: Props) {
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
 
+    const sortState = useSortState();
+    const { sorting } = sortState;
+
     const handleBackButton = useCallback(() => {
         onSelectedPageChange('map');
     }, [onSelectedPageChange]);
@@ -189,10 +196,33 @@ function Conflict(props: Props) {
 
     const paginatedData = useMemo(() => {
         const finalPaginatedData = [...filteredData];
+        if (sorting) {
+            finalPaginatedData.sort((a, b) => {
+                if (sorting.name === 'iso3' || sorting.name === 'geo_name') {
+                    return compareString(
+                        a[sorting.name],
+                        b[sorting.name],
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                if (
+                    sorting.name === 'stock_displacement'
+                    || sorting.name === 'new_displacements'
+                    || sorting.name === 'year'
+                ) {
+                    return compareNumber(
+                        Number(a[sorting.name]),
+                        Number(b[sorting.name]),
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                return 1;
+            });
+        }
         finalPaginatedData.splice(0, (activePage - 1) * pageSize);
         finalPaginatedData.length = pageSize;
         return finalPaginatedData;
-    }, [activePage, pageSize, filteredData]);
+    }, [sorting, activePage, pageSize, filteredData]);
 
     const columns = useMemo(
         () => ([
@@ -206,21 +236,25 @@ function Conflict(props: Props) {
                 'name',
                 'Name',
                 (item) => item.geo_name,
+                { sortable: true },
             ),
             createNumberColumn<ConflictData, string>(
                 'year',
                 'Year',
                 (item) => Number(item.year),
+                { sortable: true },
             ),
             createNumberColumn<ConflictData, string>(
-                'stockDisplacement',
+                'stock_displacement',
                 'Conflict Stock Displacement',
                 (item) => item.stock_displacement,
+                { sortable: true },
             ),
             createNumberColumn<ConflictData, string>(
-                'newDisplacement',
+                'new_displacements',
                 'Conflict New Displacement',
                 (item) => item.new_displacements,
+                { sortable: true },
             ),
         ]),
         [],
@@ -317,12 +351,14 @@ function Conflict(props: Props) {
                     </div>
                 </div>
                 <div className={styles.tableContainer}>
-                    <Table
-                        data={paginatedData}
-                        className={styles.table}
-                        keySelector={conflictItemKeySelector}
-                        columns={columns}
-                    />
+                    <SortContext.Provider value={sortState}>
+                        <Table
+                            data={paginatedData}
+                            className={styles.table}
+                            keySelector={conflictItemKeySelector}
+                            columns={columns}
+                        />
+                    </SortContext.Provider>
                 </div>
                 <div className={styles.footerContainer}>
                     <Pager

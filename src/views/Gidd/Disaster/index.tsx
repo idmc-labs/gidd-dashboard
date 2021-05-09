@@ -5,14 +5,18 @@ import {
     randomString,
     isDefined,
     unique,
+    compareString,
+    compareNumber,
 } from '@togglecorp/fujs';
 import {
     MultiSelectInput,
     Button,
-    createNumberColumn,
-    createDateColumn,
     Table,
     Pager,
+    createNumberColumn,
+    createDateColumn,
+    SortContext,
+    useSortState,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -142,12 +146,15 @@ function Disaster(props: Props) {
     const [finalFormValue, setFinalFormValue] = useState<FilterFields>(defaultFormValues);
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+    const sortState = useSortState();
+    const { sorting } = sortState;
 
     const handleBackButton = useCallback(() => {
         onSelectedPageChange('map');
     }, [onSelectedPageChange]);
 
     const handleSubmit = useCallback((finalValue: FormType) => {
+        setActivePage(1);
         setFinalFormValue(finalValue);
     }, []);
 
@@ -232,10 +239,41 @@ function Disaster(props: Props) {
 
     const paginatedData = useMemo(() => {
         const finalPaginatedData = [...filteredData];
+        if (sorting) {
+            finalPaginatedData.sort((a, b) => {
+                if (
+                    sorting.name === 'iso3'
+                    || sorting.name === 'geo_name'
+                    || sorting.name === 'event_name'
+                    || sorting.name === 'start_date'
+                    || sorting.name === 'hazard_category'
+                    || sorting.name === 'hazard_sub_category'
+                    || sorting.name === 'hazard_type'
+                    || sorting.name === 'hazard_sub_type'
+                ) {
+                    return compareString(
+                        a[sorting.name],
+                        b[sorting.name],
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                if (
+                    sorting.name === 'new_displacements'
+                    || sorting.name === 'year'
+                ) {
+                    return compareNumber(
+                        Number(a[sorting.name]),
+                        Number(b[sorting.name]),
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                return 1;
+            });
+        }
         finalPaginatedData.splice(0, (activePage - 1) * pageSize);
         finalPaginatedData.length = pageSize;
         return finalPaginatedData;
-    }, [activePage, pageSize, filteredData]);
+    }, [sorting, activePage, pageSize, filteredData]);
 
     const columns = useMemo(
         () => ([
@@ -246,39 +284,46 @@ function Disaster(props: Props) {
                 { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
-                'name',
+                'geo_name',
                 'Name',
                 (item) => item.geo_name,
+                { sortable: true },
             ),
             createNumberColumn<DisasterData, string>(
                 'year',
                 'Year',
                 (item) => Number(item.year),
+                { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
                 'event_name',
                 'Event Name',
                 (item) => item.event_name ?? item.glide_number,
+                { sortable: true },
             ),
             createDateColumn<DisasterData, string>(
                 'start_date',
                 'Date of event (start)',
                 (item) => item.start_date,
+                { sortable: true },
             ),
             createNumberColumn<DisasterData, string>(
-                'newDisplacement',
+                'new_displacements',
                 'Disaster New Displacement',
                 (item) => item.new_displacements,
+                { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
                 'hazard_category',
                 'Hazard Category',
                 (item) => item.hazard_category,
+                { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
                 'hazard_type',
                 'Hazard Type',
                 (item) => item.hazard_type,
+                { sortable: true },
             ),
         ]),
         [],
@@ -381,12 +426,14 @@ function Disaster(props: Props) {
                     </div>
                 </div>
                 <div className={styles.tableContainer}>
-                    <Table
-                        data={paginatedData}
-                        className={styles.table}
-                        keySelector={disasterItemKeySelector}
-                        columns={columns}
-                    />
+                    <SortContext.Provider value={sortState}>
+                        <Table
+                            data={paginatedData}
+                            className={styles.table}
+                            keySelector={disasterItemKeySelector}
+                            columns={columns}
+                        />
+                    </SortContext.Provider>
                 </div>
                 <div className={styles.footerContainer}>
                     <Pager

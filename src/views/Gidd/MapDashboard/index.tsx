@@ -3,6 +3,8 @@ import {
     _cs,
     sum,
     isDefined,
+    compareString,
+    compareNumber,
 } from '@togglecorp/fujs';
 import { AiOutlineFileExcel } from 'react-icons/ai';
 import {
@@ -10,6 +12,8 @@ import {
     createNumberColumn,
     Table,
     Pager,
+    SortContext,
+    useSortState,
 } from '@togglecorp/toggle-ui';
 
 import Map, {
@@ -60,6 +64,8 @@ function MapDashboard(props: Props) {
         onSelectedPageChange,
     } = props;
 
+    const sortState = useSortState();
+    const { sorting } = sortState;
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
 
@@ -130,10 +136,49 @@ function MapDashboard(props: Props) {
             return [];
         }
         const finalPaginatedData = [...response?.results];
+        if (sorting) {
+            finalPaginatedData.sort((a, b) => {
+                if (sorting.name === 'iso3' || sorting.name === 'geo_name') {
+                    return compareString(
+                        a[sorting.name],
+                        b[sorting.name],
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                if (
+                    sorting.name === 'conflict_stock_displacement'
+                    || sorting.name === 'conflict_new_displacements'
+                    || sorting.name === 'disaster_stock_displacement'
+                    || sorting.name === 'disaster_new_displacements'
+                    || sorting.name === 'year'
+                ) {
+                    return compareNumber(
+                        a[sorting.name],
+                        b[sorting.name],
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                if (sorting.name === 'totalStock') {
+                    return compareNumber(
+                        add(a.disaster_stock_displacement, a.conflict_stock_displacement),
+                        add(b.disaster_stock_displacement, b.conflict_stock_displacement),
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                if (sorting.name === 'totalNew') {
+                    return compareNumber(
+                        add(a.disaster_new_displacements, a.conflict_new_displacements),
+                        add(b.disaster_new_displacements, b.conflict_new_displacements),
+                        sorting.direction === 'asc' ? 1 : -1,
+                    );
+                }
+                return 1;
+            });
+        }
         finalPaginatedData.splice(0, (activePage - 1) * pageSize);
         finalPaginatedData.length = pageSize;
         return finalPaginatedData;
-    }, [activePage, pageSize, response?.results]);
+    }, [sorting, activePage, pageSize, response?.results]);
 
     const columns = useMemo(
         () => ([
@@ -144,44 +189,52 @@ function MapDashboard(props: Props) {
                 { sortable: true },
             ),
             createTextColumn<DisplacementData, string>(
-                'name',
+                'geo_name',
                 'Name',
                 (item) => item.geo_name,
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
                 'year',
                 'Year',
                 (item) => Number(item.year),
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
-                'conflictStock',
+                'conflict_stock_displacement',
                 'Conflict Stock Displacement',
                 (item) => item.conflict_stock_displacement,
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
-                'conflictNew',
+                'conflict_new_displacements',
                 'Conflict New Displacement',
                 (item) => item.conflict_new_displacements,
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
-                'disasterStock',
+                'disaster_stock_displacement',
                 'Disaster Stock Displacement',
                 (item) => item.disaster_stock_displacement,
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
-                'disasterNew',
+                'disaster_new_displacements',
                 'Disaster New Displacement',
                 (item) => item.disaster_new_displacements,
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalStock',
                 'Total Stock Displacement',
                 (item) => add(item.disaster_stock_displacement, item.conflict_stock_displacement),
+                { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalNew',
                 'Total New Displacement',
                 (item) => add(item.disaster_new_displacements, item.conflict_new_displacements),
+                { sortable: true },
             ),
         ]),
         [],
@@ -295,12 +348,14 @@ function MapDashboard(props: Props) {
                 </div>
             </div>
             <div className={styles.bottomContent}>
-                <Table
-                    className={styles.table}
-                    data={paginatedData}
-                    keySelector={displacementItemKeySelector}
-                    columns={columns}
-                />
+                <SortContext.Provider value={sortState}>
+                    <Table
+                        className={styles.table}
+                        data={paginatedData}
+                        keySelector={displacementItemKeySelector}
+                        columns={columns}
+                    />
+                </SortContext.Provider>
                 <Pager
                     activePage={activePage}
                     itemsCount={response?.total ?? 0}
