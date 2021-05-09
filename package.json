@@ -14,14 +14,15 @@
     "scripts": {
         "start": "webpack-dev-server --mode development --config config/webpack.dev.js --env.NODE_ENV=development --history-api-fallback --config-register @babel/register --color --disable-host-check",
         "build:raw": "webpack --mode production --config config/webpack.prod.js --env.NODE_ENV=production --config-register @babel/register",
-        "build": "yarn run generate && yarn run typecheck && yarn run build:raw",
+        "build": "yarn run build:raw",
         "build:unsafe": "mkdir -p generated && touch generated/types.tsx && yarn run build:raw",
         "serve": "http-server ./build/ -p 3080 -g -c-1",
         "test": "jest",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "typecheck": "tsc",
-        "lint": "eslint ./src"
+        "lint": "eslint ./src",
+        "deploy:dev": "test -d build && cp -f build/index.html build/200.html && surge --domain gidd-2020.surge.sh build/"
     },
     "jest": {
         "setupFiles": [
