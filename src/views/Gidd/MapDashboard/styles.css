@@ -15,9 +15,10 @@
         }
     }
 
-    .content {
+    .top-content {
         display: flex;
         flex-grow: 1;
+        height: 80vh;
 
         .left-container {
             padding: var(--spacing-medium);
@@ -67,6 +68,14 @@
                     }
                 }
             }
+        }
+    }
+
+    .bottom-content {
+        flex-shrink: 0;
+
+        .table {
+            width: 100%;
         }
     }
 
