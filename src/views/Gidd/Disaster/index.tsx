@@ -36,6 +36,7 @@ interface FilterFields {
     years: [number, number];
     regions: string[];
     countries: string[];
+    disasterType: string[];
 }
 
 type FormType = PurgeNull<PartialForm<FilterFields>>;
@@ -48,6 +49,7 @@ const schema: FormSchema = {
         years: [requiredCondition],
         regions: [],
         countries: [],
+        disasterType: [],
     }),
 };
 
@@ -55,6 +57,7 @@ const defaultFormValues: FormType = {
     years: [2008, 2020],
     regions: [],
     countries: [],
+    disasterType: [],
 };
 
 interface DisasterData {
@@ -74,7 +77,11 @@ interface DisasterData {
     // eslint-disable-next-line camelcase
     hazard_category: string;
     // eslint-disable-next-line camelcase
+    hazard_sub_category: string;
+    // eslint-disable-next-line camelcase
     hazard_type: string;
+    // eslint-disable-next-line camelcase
+    hazard_sub_type: string;
 }
 
 const disasterItemKeySelector = (d: DisasterData) => d.key;
@@ -83,8 +90,20 @@ interface Item {
     value: string;
 }
 
+interface ItemWithGroup {
+    key: string;
+    value: string;
+    parent: string;
+}
+
 const inputKeySelector = (d: Item) => d.key;
 const inputValueSelector = (d: Item) => d.value;
+
+const groupedItemKeySelector = (item: ItemWithGroup) => item.key;
+const groupedItemLabelSelector = (item: ItemWithGroup) => item.value;
+
+const groupKeySelector = (item: ItemWithGroup) => item.parent;
+const groupLabelSelector = (item: ItemWithGroup) => item.parent;
 
 const regions: Item[] = [
     {
@@ -142,17 +161,36 @@ function Disaster(props: Props) {
         method: 'GET',
     });
 
-    const countriesList = useMemo(() => {
+    const {
+        countriesList,
+        subTypeList,
+    } = useMemo(() => {
         if (!response?.results) {
-            return [];
+            return {
+                countriesList: [],
+                subTypeList: [],
+            };
         }
-        return unique(
+        const countries = unique(
             response.results.filter((d) => isDefined(d.geo_name),
                 (d: DisasterData) => d.iso3),
         ).map((d) => ({
             key: d.iso3,
             value: d.geo_name,
         }));
+        // NOTE: I've grouped sub types based on hazard category
+        const subTypes = unique(
+            response.results.filter((d) => isDefined(d.hazard_sub_type),
+                (d: DisasterData) => d.hazard_sub_type),
+        ).map((d) => ({
+            key: d.hazard_sub_type,
+            value: d.hazard_sub_type,
+            parent: d.hazard_category,
+        }));
+        return {
+            countriesList: countries,
+            subTypeList: subTypes,
+        };
     }, [response?.results]);
 
     const {
@@ -176,6 +214,9 @@ function Disaster(props: Props) {
             ) && (
                 finalFormValue.countries.length === 0
                 || finalFormValue.countries.indexOf(d.iso3) !== -1
+            ) && (
+                finalFormValue.disasterType.length === 0
+                || finalFormValue.disasterType.indexOf(d.hazard_sub_type) !== -1
             )
         )).map((d) => ({ ...d, key: randomString() }));
         const totalNewDisplacements = sum(
@@ -272,15 +313,29 @@ function Disaster(props: Props) {
                         optionsPopupClassName={styles.popup}
                     />
                     <MultiSelectInput
-                        name="countries"
                         className={styles.filter}
-                        label="Countries"
-                        options={countriesList}
                         keySelector={inputKeySelector}
+                        label="Countries"
                         labelSelector={inputValueSelector}
-                        value={value.countries}
+                        name="countries"
                         onChange={onValueChange}
+                        options={countriesList}
                         optionsPopupClassName={styles.popup}
+                        value={value.countries}
+                    />
+                    <MultiSelectInput
+                        className={styles.filter}
+                        keySelector={groupedItemKeySelector}
+                        label="Disaster Category"
+                        labelSelector={groupedItemLabelSelector}
+                        name="disasterType"
+                        onChange={onValueChange}
+                        options={subTypeList}
+                        optionsPopupClassName={styles.popup}
+                        value={value.disasterType}
+                        groupKeySelector={groupKeySelector}
+                        groupLabelSelector={groupLabelSelector}
+                        grouped
                     />
                     <Slider
                         className={_cs(styles.slider, styles.filter)}
