@@ -7,7 +7,17 @@ import {
     unique,
     compareString,
     compareNumber,
+    listToGroupList,
+    mapToList,
 } from '@togglecorp/fujs';
+import {
+    BarChart,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Legend,
+    Bar,
+} from 'recharts';
 import {
     MultiSelectInput,
     Button,
@@ -35,6 +45,14 @@ import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
+
+interface AggregatedData {
+    year: number;
+    // eslint-disable-next-line camelcase
+    conflict_new_displacements?: number;
+    // eslint-disable-next-line camelcase
+    disaster_new_displacements?: number;
+}
 
 interface FilterFields {
     years: [number, number];
@@ -158,6 +176,30 @@ function Disaster(props: Props) {
         setFinalFormValue(finalValue);
     }, []);
 
+    /*
+    const {
+        response: aggregatedDataResponse,
+    } = useRequest<AggregatedData[]>({
+        url: 'https://api.idmcdb.org/api/psql/new_displacements_by_year',
+        query: {
+            ci: 'IDMCWSHSOLO009',
+        },
+        method: 'GET',
+    });
+
+    const filteredAggregatedData = useMemo(() => {
+        if (!aggregatedDataResponse) {
+            return [];
+        }
+        return aggregatedDataResponse.filter((d) => (
+            (
+                Number(d.year) >= finalFormValue.years[0]
+                && Number(d.year) <= finalFormValue.years[1]
+            )
+        ));
+    }, [finalFormValue, aggregatedDataResponse]);
+    */
+
     const {
         response,
     } = useRequest<MultiResponse<DisasterData>>({
@@ -204,6 +246,7 @@ function Disaster(props: Props) {
         totalCount,
         noOfCountries,
         filteredData,
+        filteredAggregatedData,
         noTotal,
     } = useMemo(() => {
         if (!response?.results) {
@@ -226,6 +269,15 @@ function Disaster(props: Props) {
                 || finalFormValue.disasterType.indexOf(d.hazard_sub_type) !== -1
             )
         )).map((d) => ({ ...d, key: randomString() }));
+        const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
+        const dataTotalByYear = mapToList(dataByYear, (d, k) => (
+            ({
+                year: k,
+                total: sum(
+                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
+                ),
+            })
+        ));
         const totalNewDisplacements = sum(
             newFilteredData.map((d) => d.new_displacements).filter(isDefined),
         );
@@ -234,6 +286,7 @@ function Disaster(props: Props) {
             noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
             totalCount: newFilteredData.length,
             noTotal: totalNewDisplacements,
+            filteredAggregatedData: dataTotalByYear,
         };
     }, [response?.results, finalFormValue]);
 
@@ -423,6 +476,17 @@ function Disaster(props: Props) {
                             variant="disaster"
                             size="medium"
                         />
+                        <BarChart width={600} height={200} data={filteredAggregatedData}>
+                            <XAxis dataKey="year" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar
+                                dataKey="total"
+                                fill="var(--color-disaster)"
+                                name="Disaster new displacements"
+                            />
+                        </BarChart>
                     </div>
                 </div>
                 <div className={styles.tableContainer}>

@@ -158,6 +158,7 @@
         "@turf/bearing": "^6.3.0",
         "@turf/combine": "^6.0.1",
         "@types/mapbox-gl": "^1.12.8",
+        "@types/recharts": "^1.8.19",
         "@types/uuid": "^8.3.0",
         "abort-controller": "^3.0.0",
         "core-js": "3.8.1",
@@ -171,6 +172,7 @@
         "react-mde": "^11.0.0",
         "react-router-dom": "^5.2.0",
         "react-showdown": "^2.1.0",
+        "recharts": "^2.0.9",
         "resize-observer-polyfill": "^1.5.1",
         "turf-featurecollection": "^1.0.1",
         "uuid": "^8.3.2"
