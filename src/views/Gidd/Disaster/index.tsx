@@ -32,20 +32,22 @@ import {
     requiredCondition,
     useForm,
     createSubmitHandler,
-    PartialForm,
-    PurgeNull,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 
 import { createTextColumn } from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
-import { MultiResponse } from '#utils/common';
+import {
+    MultiResponse,
+    add,
+} from '#utils/common';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
 
+/*
 interface AggregatedData {
     year: number;
     // eslint-disable-next-line camelcase
@@ -53,6 +55,7 @@ interface AggregatedData {
     // eslint-disable-next-line camelcase
     disaster_new_displacements?: number;
 }
+*/
 
 interface FilterFields {
     years: [number, number];
@@ -61,7 +64,7 @@ interface FilterFields {
     disasterType: string[];
 }
 
-type FormType = PurgeNull<PartialForm<FilterFields>>;
+type FormType = FilterFields;
 
 type FormSchema = ObjectSchema<FormType>
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
@@ -273,7 +276,7 @@ function Disaster(props: Props) {
         const dataTotalByYear = mapToList(dataByYear, (d, k) => (
             ({
                 year: k,
-                total: sum(
+                total: add(
                     d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
                 ),
             })
@@ -399,7 +402,7 @@ function Disaster(props: Props) {
                     className={styles.filters}
                     onSubmit={createSubmitHandler(validate, onErrorSet, handleSubmit)}
                 >
-                    <MultiSelectInput
+                    <MultiSelectInput<string, 'regions', Item, any>
                         name="regions"
                         className={styles.filter}
                         label="Regions"
@@ -410,7 +413,7 @@ function Disaster(props: Props) {
                         onChange={onValueChange}
                         optionsPopupClassName={styles.popup}
                     />
-                    <MultiSelectInput
+                    <MultiSelectInput<string, 'countries', Item, any>
                         className={styles.filter}
                         keySelector={inputKeySelector}
                         label="Countries"
@@ -421,7 +424,7 @@ function Disaster(props: Props) {
                         optionsPopupClassName={styles.popup}
                         value={value.countries}
                     />
-                    <MultiSelectInput
+                    <MultiSelectInput<string, 'disasterType', ItemWithGroup, any>
                         className={styles.filter}
                         keySelector={groupedItemKeySelector}
                         label="Disaster Category"

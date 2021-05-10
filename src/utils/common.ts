@@ -2,7 +2,11 @@ import bbox from '@turf/bbox';
 import bboxPolygon from '@turf/bbox-polygon';
 import combine from '@turf/combine';
 import featureCollection from 'turf-featurecollection';
-import { isValidUrl as isValidRemoteUrl } from '@togglecorp/fujs';
+import {
+    isValidUrl as isValidRemoteUrl,
+    isDefined,
+    sum,
+} from '@togglecorp/fujs';
 import {
     BasicEntity,
     EnumEntity,
@@ -60,4 +64,9 @@ export interface MultiResponse<T> {
     limit: number;
     total: number;
     results: T[];
+}
+
+export function add(args: (number | undefined)[]) {
+    const newArgs = args.filter(isDefined);
+    return sum(newArgs);
 }

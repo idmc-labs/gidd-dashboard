@@ -1,5 +1,8 @@
 import React from 'react';
-import { _cs } from '@togglecorp/fujs';
+import {
+    _cs,
+    isNotDefined,
+} from '@togglecorp/fujs';
 import { Numeral } from '@togglecorp/toggle-ui';
 
 import styles from './styles.css';
@@ -11,6 +14,7 @@ function NumberBlock({
     className,
     variant = 'normal',
     size = 'small',
+    hideIfNoValue = false,
 }: {
     label: string;
     subLabel?: string;
@@ -18,7 +22,11 @@ function NumberBlock({
     className?: string;
     variant?: 'conflict' | 'normal' | 'disaster';
     size?: 'large' | 'medium' | 'small';
+    hideIfNoValue?: boolean;
 }) {
+    if (isNotDefined(value) && hideIfNoValue) {
+        return null;
+    }
     return (
         <div
             className={_cs(

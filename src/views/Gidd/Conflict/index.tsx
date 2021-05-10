@@ -30,20 +30,22 @@ import {
     requiredCondition,
     useForm,
     createSubmitHandler,
-    PartialForm,
-    PurgeNull,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 
 import { createTextColumn } from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
-import { MultiResponse } from '#utils/common';
+import {
+    MultiResponse,
+    add,
+} from '#utils/common';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
 
+/*
 interface AggregatedData {
     year: number;
     // eslint-disable-next-line camelcase
@@ -51,6 +53,7 @@ interface AggregatedData {
     // eslint-disable-next-line camelcase
     disaster_new_displacements?: number;
 }
+*/
 
 interface FilterFields {
     years: [number, number];
@@ -58,7 +61,7 @@ interface FilterFields {
     countries: string[];
 }
 
-type FormType = PurgeNull<PartialForm<FilterFields>>;
+type FormType = FilterFields;
 
 type FormSchema = ObjectSchema<FormType>
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
@@ -132,7 +135,7 @@ function Conflict(props: Props) {
         onErrorSet,
     } = useForm(defaultFormValues, schema);
 
-    const [finalFormValue, setFinalFormValue] = useState<FilterFields>(defaultFormValues);
+    const [finalFormValue, setFinalFormValue] = useState<FormType>(defaultFormValues);
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
 
@@ -224,7 +227,7 @@ function Conflict(props: Props) {
         const dataTotalByYear = mapToList(dataByYear, (d, k) => (
             ({
                 year: k,
-                total: sum(
+                total: add(
                     d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
                 ),
             })
@@ -330,7 +333,7 @@ function Conflict(props: Props) {
                     className={styles.filters}
                     onSubmit={createSubmitHandler(validate, onErrorSet, handleSubmit)}
                 >
-                    <MultiSelectInput
+                    <MultiSelectInput<string, 'regions', Item, any>
                         name="regions"
                         className={styles.filter}
                         label="Regions"
@@ -341,7 +344,7 @@ function Conflict(props: Props) {
                         onChange={onValueChange}
                         optionsPopupClassName={styles.popup}
                     />
-                    <MultiSelectInput
+                    <MultiSelectInput<string, 'countries', Item, any>
                         name="countries"
                         className={styles.filter}
                         label="Countries"

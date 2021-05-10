@@ -1,12 +1,13 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import {
     _cs,
-    sum,
+    listToMap,
     isDefined,
     compareString,
     compareNumber,
 } from '@togglecorp/fujs';
 import { AiOutlineFileExcel } from 'react-icons/ai';
+import bbox from '@turf/bbox';
 import {
     Button,
     createNumberColumn,
@@ -19,22 +20,22 @@ import {
 import Map, {
     MapContainer,
     MapBounds,
+    MapSource,
+    MapLayer,
+    MapTooltip,
 } from '@togglecorp/re-map';
 
 import { useRequest } from '#utils/request';
-import { MultiResponse } from '#utils/common';
+import {
+    MultiResponse,
+    add,
+} from '#utils/common';
 import { createTextColumn } from '#components/tableHelpers';
 
+import allAreas from '#resources/map.json';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
-
-function add(...args: (number | undefined)[]) {
-    const newArgs = args.filter((arg) => isDefined(arg));
-    return sum(newArgs);
-}
-
-const lightStyle = 'mapbox://styles/mapbox/light-v10';
 
 interface DisplacementData {
     iso3: string;
@@ -50,6 +51,103 @@ interface DisplacementData {
     // eslint-disable-next-line camelcase
     disaster_new_displacements?: number;
 }
+
+interface GeoJsonFeature {
+    type: string;
+    properties: Record<string, unknown>;
+    geometry: unknown;
+    id: number;
+}
+
+// We should use one from mapbox
+interface GeoJson {
+    type: string;
+    crs?: unknown;
+    features: GeoJsonFeature[];
+}
+
+interface HoveredRegion {
+    feature: mapboxgl.MapboxGeoJSONFeature;
+    lngLat: mapboxgl.LngLatLike;
+    info?: DisplacementData;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noOp = () => {};
+const layerPaint: mapboxgl.FillPaint = {
+    'fill-color': '#fff',
+    'fill-opacity': 1,
+};
+const layerPaintBlue: mapboxgl.FillPaint = {
+    'fill-color': [
+        'case',
+        ['==', ['feature-state', 'hovered'], 1],
+        '#37558f',
+        '#4472c4',
+    ],
+    'fill-opacity': 1,
+};
+const outlinePaintLight: mapboxgl.LinePaint = {
+    'line-color': '#f0f0f0',
+    'line-width': 1,
+    'line-opacity': 1,
+};
+const outlinePaintDark: mapboxgl.LinePaint = {
+    'line-color': '#414141',
+    'line-width': 1,
+    'line-opacity': 1,
+};
+const tooltipOptions: mapboxgl.PopupOptions = {
+    closeOnClick: false,
+    closeButton: false,
+    offset: 8,
+    maxWidth: '480px',
+};
+
+interface TooltipProps {
+    feature?: mapboxgl.MapboxGeoJSONFeature;
+    info?: DisplacementData;
+}
+function Tooltip({
+    feature,
+    info,
+}: TooltipProps) {
+    if (!feature) {
+        return null;
+    }
+
+    return (
+        <div>
+            <h3>{info?.geo_name}</h3>
+            <NumberBlock
+                label="Conflict IDP"
+                value={info?.conflict_stock_displacement}
+                size="small"
+                hideIfNoValue
+            />
+            <NumberBlock
+                label="Conflict New Displacements"
+                value={info?.conflict_new_displacements}
+                size="small"
+                hideIfNoValue
+            />
+            <NumberBlock
+                label="Disaster IDP"
+                value={info?.disaster_stock_displacement}
+                size="small"
+                hideIfNoValue
+            />
+            <NumberBlock
+                label="Disaster New Displacements"
+                value={info?.disaster_new_displacements}
+                size="small"
+                hideIfNoValue
+            />
+        </div>
+    );
+}
+
+const lightStyle = 'mapbox://styles/mapbox/light-v10';
 
 const displacementItemKeySelector = (d: DisplacementData) => d.iso3;
 
@@ -113,15 +211,15 @@ function MapDashboard(props: Props) {
             .filter((r) => isDefined(r.disaster_stock_displacement));
 
         return {
-            newConflictTotal: sum(definedNewConflicts.map((c) => c.conflict_new_displacements)),
+            newConflictTotal: add(definedNewConflicts.map((c) => c.conflict_new_displacements)),
             newConflictCountriesCount: definedNewConflicts.length,
-            newDisasterTotal: sum(definedNewDisasters.map((c) => c.disaster_new_displacements)),
+            newDisasterTotal: add(definedNewDisasters.map((c) => c.disaster_new_displacements)),
             newDisastersCountriesCount: definedNewDisasters.length,
-            totalIdpConflictCount: sum(
+            totalIdpConflictCount: add(
                 definedStockConflict.map((c) => c.conflict_stock_displacement),
             ),
             idpConflictCountriesCount: definedStockConflict.length,
-            totalIdpDisasterCount: sum(
+            totalIdpDisasterCount: add(
                 definedStockDisasters.map((c) => c.disaster_stock_displacement),
             ),
             idpDisasterCountriesCount: definedStockDisasters.length,
@@ -160,15 +258,15 @@ function MapDashboard(props: Props) {
                 }
                 if (sorting.name === 'totalStock') {
                     return compareNumber(
-                        add(a.disaster_stock_displacement, a.conflict_stock_displacement),
-                        add(b.disaster_stock_displacement, b.conflict_stock_displacement),
+                        add([a.disaster_stock_displacement, a.conflict_stock_displacement]),
+                        add([b.disaster_stock_displacement, b.conflict_stock_displacement]),
                         sorting.direction === 'asc' ? 1 : -1,
                     );
                 }
                 if (sorting.name === 'totalNew') {
                     return compareNumber(
-                        add(a.disaster_new_displacements, a.conflict_new_displacements),
-                        add(b.disaster_new_displacements, b.conflict_new_displacements),
+                        add([a.disaster_new_displacements, a.conflict_new_displacements]),
+                        add([b.disaster_new_displacements, b.conflict_new_displacements]),
                         sorting.direction === 'asc' ? 1 : -1,
                     );
                 }
@@ -227,13 +325,13 @@ function MapDashboard(props: Props) {
             createNumberColumn<DisplacementData, string>(
                 'totalStock',
                 'Total Stock Displacement',
-                (item) => add(item.disaster_stock_displacement, item.conflict_stock_displacement),
+                (item) => add([item.disaster_stock_displacement, item.conflict_stock_displacement]),
                 { sortable: true },
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalNew',
                 'Total New Displacement',
-                (item) => add(item.disaster_new_displacements, item.conflict_new_displacements),
+                (item) => add([item.disaster_new_displacements, item.conflict_new_displacements]),
                 { sortable: true },
             ),
         ]),
@@ -247,6 +345,49 @@ function MapDashboard(props: Props) {
     const handleDisasterClick = useCallback(() => {
         onSelectedPageChange('disaster');
     }, [onSelectedPageChange]);
+
+    const countriesMap = useMemo(() => {
+        if (!response?.results) {
+            return undefined;
+        }
+        return listToMap(response.results, (d) => d.iso3, (d) => d);
+    }, [response?.results]);
+
+    const bounds = useMemo(() => bbox(allAreas), []);
+    const countriesWithData = useMemo(() => {
+        if (!countriesMap) {
+            return undefined;
+        }
+        const areas = (allAreas as GeoJson)
+            .features.filter((a) => isDefined(countriesMap[a?.properties?.iso3]));
+        return {
+            ...allAreas,
+            features: areas,
+        };
+    }, [countriesMap]);
+
+    const [
+        hoveredRegionProperties,
+        setHoveredRegionProperties,
+    ] = React.useState<HoveredRegion | undefined>();
+
+    const handleMapRegionMouseEnter = React.useCallback(
+        (feature: mapboxgl.MapboxGeoJSONFeature, lngLat: mapboxgl.LngLat) => {
+            setHoveredRegionProperties({
+                feature,
+                lngLat,
+                info: countriesMap?.[feature?.properties?.iso3],
+            });
+        },
+        [setHoveredRegionProperties, countriesMap],
+    );
+
+    const handleMapRegionMouseLeave = React.useCallback(
+        () => {
+            setHoveredRegionProperties(undefined);
+        },
+        [setHoveredRegionProperties],
+    );
 
     return (
         <div className={_cs(className, styles.mapDashboard)}>
@@ -264,9 +405,70 @@ function MapDashboard(props: Props) {
                         navControlShown
                     >
                         <MapContainer className={styles.mapContainer} />
-                        <MapBounds
-                            bounds={undefined}
-                        />
+                        <MapBounds bounds={bounds} />
+                        <MapSource
+                            sourceKey="all-areas"
+                            sourceOptions={{
+                                type: 'geojson',
+                            }}
+                            geoJson={allAreas}
+                        >
+                            <MapLayer
+                                layerKey="all-areas-fill"
+                                onMouseEnter={noOp}
+                                layerOptions={{
+                                    type: 'fill',
+                                    paint: layerPaint,
+                                }}
+                            />
+                            <MapLayer
+                                layerKey="all-areas"
+                                onMouseEnter={noOp}
+                                layerOptions={{
+                                    type: 'line',
+                                    paint: outlinePaintDark,
+                                }}
+                            />
+                        </MapSource>
+                        {countriesWithData && (
+                            <MapSource
+                                sourceKey="all-areas-selected"
+                                sourceOptions={{
+                                    type: 'geojson',
+                                }}
+                                geoJson={countriesWithData}
+                            >
+                                <MapLayer
+                                    layerKey="all-areas-selected-fill"
+                                    onMouseEnter={handleMapRegionMouseEnter}
+                                    onMouseLeave={handleMapRegionMouseLeave}
+                                    layerOptions={{
+                                        type: 'fill',
+                                        paint: layerPaintBlue,
+                                    }}
+                                />
+                                <MapLayer
+                                    layerKey="all-areas-selected"
+                                    onMouseEnter={noOp}
+                                    layerOptions={{
+                                        type: 'line',
+                                        paint: outlinePaintLight,
+                                    }}
+                                />
+                            </MapSource>
+                        )}
+                        { hoveredRegionProperties && hoveredRegionProperties.lngLat && (
+                            <MapTooltip
+                                coordinates={hoveredRegionProperties.lngLat}
+                                tooltipOptions={tooltipOptions}
+                                trackPointer
+                            >
+                                <Tooltip
+                                    feature={hoveredRegionProperties.feature}
+                                    info={hoveredRegionProperties.info}
+                                />
+                            </MapTooltip>
+                        )}
                     </Map>
                 </div>
                 <div className={styles.rightContainer}>

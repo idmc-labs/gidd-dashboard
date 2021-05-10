@@ -46,5 +46,11 @@
             font-size: var(--font-size-ultra-large);
         }
     }
+
+    &.small {
+        .value {
+            font-size: var(--font-size-large);
+        }
+    }
 }
 
