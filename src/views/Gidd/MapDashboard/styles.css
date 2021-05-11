@@ -1,17 +1,43 @@
 .map-dashboard {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--spacing-large) - var(--spacing-medium));
+    padding: calc(var(--spacing-extra-large) - var(--spacing-large));
     width: 100%;
     height: 90vh;
     --width-right-container: 360px;
 
     .header {
+        display: flex;
+        align-items: center;
         flex-shrink: 0;
-        padding: var(--spacing-medium);
+        padding: calc(var(--spacing-large) - var(--spacing-small));
 
         .heading {
+            flex-grow: 1;
+            padding: var(--spacing-small);
             color: var(--color-primary);
+        }
+
+        .button-container {
+            display: flex;
+            align-items: center;
+
+            .button {
+                margin: var(--spacing-small);
+                padding: var(--spacing-large);
+                text-transform: uppercase;
+                font-size: var(--font-size-large);
+            }
+
+            .conflict-button {
+                background-color: var(--color-conflict);
+                color: var(--color-foreground);
+            }
+
+            .disaster-button {
+                background-color: var(--color-disaster);
+                color: var(--color-foreground);
+            }
         }
     }
 
@@ -21,7 +47,7 @@
         height: 80vh;
 
         .left-container {
-            padding: var(--spacing-medium);
+            padding: var(--spacing-large);
             width: calc(100% - var(--width-right-container));
             height: 100%;
 
@@ -34,7 +60,7 @@
         .right-container {
             display: flex;
             flex-direction: column;
-            padding: var(--spacing-medium);
+            padding: var(--spacing-large);
             width: var(--width-right-container);
 
             .info-box {
@@ -47,26 +73,30 @@
                         flex-grow: 1;
                     }
                 }
-            }
 
-            .download-box {
-                display: flex;
-                align-self: flex-end;
-                flex-direction: column;
-
-                .download-link {
-                    display: flex;
-                    align-items: center;
-                    padding: var(--spacing-small);
-                    text-decoration: none;
-                    color: var(--color-text);
-
-                    .icon {
-                        flex-shrink: 0;
-                        padding: var(--spacing-extra-small);
-                        font-size: var(--font-size-extra-large);
-                    }
+                &.top-box {
+                    margin-bottom: var(--spacing-extra-large);
                 }
+            }
+        }
+    }
+
+    .download-box {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-large);
+
+        .download-link {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-small) var(--spacing-medium);
+            text-decoration: underline;
+            color: var(--color-text);
+
+            .icon {
+                flex-shrink: 0;
+                padding: var(--spacing-extra-small);
+                font-size: var(--font-size-extra-large);
             }
         }
     }
@@ -75,37 +105,13 @@
         flex-shrink: 0;
 
         .table {
+            padding: var(--spacing-large);
             width: 100%;
         }
-    }
 
-    .footer {
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-        border-top: var(--color-separator) solid var(--width-separator-thin);
-        border-bottom: var(--color-separator) solid var(--width-separator-thin);
-        padding: var(--spacing-medium);
-
-        .button-container {
+        .pager-container {
             display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 36px;
-
-            .button {
-                font-size: var(--font-size-super-large);
-            }
-
-            .conflict-button {
-                background-color: var(--color-conflict);
-                color: var(--color-foreground);
-            }
-
-            .disaster-button {
-                background-color: var(--color-disaster);
-                color: var(--color-foreground);
-            }
+            justify-content: flex-end;
         }
     }
 }

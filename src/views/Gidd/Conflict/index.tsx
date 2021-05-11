@@ -11,6 +11,7 @@ import {
 } from '@togglecorp/fujs';
 import {
     BarChart,
+    CartesianGrid,
     XAxis,
     YAxis,
     Tooltip,
@@ -33,6 +34,7 @@ import {
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 
+import CustomBar from '#components/CurvedBar';
 import { createTextColumn } from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
 import {
@@ -177,10 +179,14 @@ function Conflict(props: Props) {
     const {
         response,
     } = useRequest<MultiResponse<ConflictData>>({
-        url: 'https://api.idmcdb.org/api/conflict_data',
+        url: 'https://api.idmcdb.org/api/conflict_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        /*
         query: {
             ci: 'IDMCWSHSOLO009',
+            year: 2008,
+            range: true,
         },
+        */
         method: 'GET',
     });
 
@@ -254,7 +260,7 @@ function Conflict(props: Props) {
         const finalPaginatedData = [...filteredData];
         if (sorting) {
             finalPaginatedData.sort((a, b) => {
-                if (sorting.name === 'iso3' || sorting.name === 'geo_name') {
+                if (sorting.name === 'geo_name') {
                     return compareString(
                         a[sorting.name],
                         b[sorting.name],
@@ -283,15 +289,11 @@ function Conflict(props: Props) {
     const columns = useMemo(
         () => ([
             createTextColumn<ConflictData, string>(
-                'iso3',
-                'ISO3',
-                (item) => item.iso3,
-                { sortable: true },
-            ),
-            createTextColumn<ConflictData, string>(
-                'name',
+                'geo_name',
                 'Name',
-                (item) => item.geo_name,
+                (item) => (
+                    item.geo_name ?? countriesList?.find((c) => c.key === item.iso3)?.value
+                ),
                 { sortable: true },
             ),
             createNumberColumn<ConflictData, string>(
@@ -313,7 +315,7 @@ function Conflict(props: Props) {
                 { sortable: true },
             ),
         ]),
-        [],
+        [countriesList],
     );
 
     return (
@@ -404,15 +406,30 @@ function Conflict(props: Props) {
                             variant="conflict"
                             size="medium"
                         />
-                        <BarChart width={600} height={200} data={filteredAggregatedData}>
-                            <XAxis dataKey="year" />
-                            <YAxis />
+                        <BarChart
+                            width={500}
+                            height={200}
+                            data={filteredAggregatedData}
+                        >
+                            <XAxis
+                                dataKey="year"
+                                axisLine={false}
+                            />
+                            <CartesianGrid
+                                vertical={false}
+                                strokeDasharray="3 3"
+                            />
+                            <YAxis
+                                axisLine={false}
+                            />
                             <Tooltip />
                             <Legend />
                             <Bar
                                 dataKey="total"
                                 fill="var(--color-conflict)"
                                 name="Conflict new displacements"
+                                shape={<CustomBar />}
+                                maxBarSize={16}
                             />
                         </BarChart>
                     </div>

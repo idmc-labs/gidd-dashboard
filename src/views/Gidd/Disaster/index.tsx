@@ -12,6 +12,7 @@ import {
 } from '@togglecorp/fujs';
 import {
     BarChart,
+    CartesianGrid,
     XAxis,
     YAxis,
     Tooltip,
@@ -36,6 +37,7 @@ import {
 } from '@togglecorp/toggle-form';
 
 import { createTextColumn } from '#components/tableHelpers';
+import CustomBar from '#components/CurvedBar';
 import { useRequest } from '#utils/request';
 import {
     MultiResponse,
@@ -206,10 +208,12 @@ function Disaster(props: Props) {
     const {
         response,
     } = useRequest<MultiResponse<DisasterData>>({
-        url: 'https://api.idmcdb.org/api/disaster_data',
+        url: 'https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        /*
         query: {
             ci: 'IDMCWSHSOLO009',
         },
+        */
         method: 'GET',
     });
 
@@ -232,11 +236,11 @@ function Disaster(props: Props) {
         }));
         // NOTE: I've grouped sub types based on hazard category
         const subTypes = unique(
-            response.results.filter((d) => isDefined(d.hazard_sub_type),
-                (d: DisasterData) => d.hazard_sub_type),
+            response.results.filter((d) => isDefined(d.hazard_type),
+                (d: DisasterData) => d.hazard_type),
         ).map((d) => ({
-            key: d.hazard_sub_type,
-            value: d.hazard_sub_type,
+            key: d.hazard_type,
+            value: d.hazard_type,
             parent: d.hazard_category,
         }));
         return {
@@ -298,8 +302,7 @@ function Disaster(props: Props) {
         if (sorting) {
             finalPaginatedData.sort((a, b) => {
                 if (
-                    sorting.name === 'iso3'
-                    || sorting.name === 'geo_name'
+                    sorting.name === 'geo_name'
                     || sorting.name === 'event_name'
                     || sorting.name === 'start_date'
                     || sorting.name === 'hazard_category'
@@ -334,15 +337,9 @@ function Disaster(props: Props) {
     const columns = useMemo(
         () => ([
             createTextColumn<DisasterData, string>(
-                'iso3',
-                'ISO3',
-                (item) => item.iso3,
-                { sortable: true },
-            ),
-            createTextColumn<DisasterData, string>(
                 'geo_name',
                 'Name',
-                (item) => item.geo_name,
+                (item) => item.geo_name ?? countriesList.find((c) => c.key === item.iso3)?.value,
                 { sortable: true },
             ),
             createNumberColumn<DisasterData, string>(
@@ -382,13 +379,13 @@ function Disaster(props: Props) {
                 { sortable: true },
             ),
         ]),
-        [],
+        [countriesList],
     );
 
     return (
         <div className={_cs(className, styles.disaster)}>
             <header className={styles.header}>
-                <h1 className={styles.heading}>IDMC Query Tool - Disaster and Violence</h1>
+                <h1 className={styles.heading}>IDMC Query Tool - Disaster</h1>
                 <Button
                     className={styles.button}
                     name="back"
@@ -473,24 +470,39 @@ function Disaster(props: Props) {
                         />
                         <NumberBlock
                             className={styles.numberBlock}
-                            label="Disaster and Violence"
+                            label="Disasters"
                             subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                             value={noTotal}
                             variant="disaster"
                             size="medium"
                         />
-                        <BarChart width={600} height={200} data={filteredAggregatedData}>
-                            <XAxis dataKey="year" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar
-                                dataKey="total"
-                                fill="var(--color-disaster)"
-                                name="Disaster new displacements"
-                            />
-                        </BarChart>
                     </div>
+                    <BarChart
+                        width={500}
+                        height={200}
+                        data={filteredAggregatedData}
+                    >
+                        <XAxis
+                            dataKey="year"
+                            axisLine={false}
+                        />
+                        <CartesianGrid
+                            vertical={false}
+                            strokeDasharray="3 3"
+                        />
+                        <YAxis
+                            axisLine={false}
+                        />
+                        <Tooltip />
+                        <Legend />
+                        <Bar
+                            dataKey="total"
+                            fill="var(--color-disaster)"
+                            name="Disaster new displacements"
+                            shape={<CustomBar />}
+                            maxBarSize={16}
+                        />
+                    </BarChart>
                 </div>
                 <div className={styles.tableContainer}>
                     <SortContext.Provider value={sortState}>

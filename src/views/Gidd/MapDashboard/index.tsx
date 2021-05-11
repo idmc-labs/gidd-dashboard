@@ -83,7 +83,7 @@ const layerPaintBlue: mapboxgl.FillPaint = {
         'case',
         ['==', ['feature-state', 'hovered'], 1],
         '#37558f',
-        '#4472c4',
+        '#0774e1',
     ],
     'fill-opacity': 1,
 };
@@ -173,7 +173,7 @@ function MapDashboard(props: Props) {
         url: 'https://api.idmcdb.org/api/displacement_data',
         query: {
             // NOTE: To be changed to 2020 after data is available
-            year: 2019,
+            year: 2020,
             ci: 'IDMCWSHSOLO009',
         },
         method: 'GET',
@@ -236,7 +236,7 @@ function MapDashboard(props: Props) {
         const finalPaginatedData = [...response?.results];
         if (sorting) {
             finalPaginatedData.sort((a, b) => {
-                if (sorting.name === 'iso3' || sorting.name === 'geo_name') {
+                if (sorting.name === 'geo_name') {
                     return compareString(
                         a[sorting.name],
                         b[sorting.name],
@@ -280,12 +280,6 @@ function MapDashboard(props: Props) {
 
     const columns = useMemo(
         () => ([
-            createTextColumn<DisplacementData, string>(
-                'iso3',
-                'ISO3',
-                (item) => item.iso3,
-                { sortable: true },
-            ),
             createTextColumn<DisplacementData, string>(
                 'geo_name',
                 'Name',
@@ -393,6 +387,22 @@ function MapDashboard(props: Props) {
         <div className={_cs(className, styles.mapDashboard)}>
             <header className={styles.header}>
                 <h1 className={styles.heading}>2020 Internal Displacement</h1>
+                <div className={styles.buttonContainer}>
+                    <Button
+                        name="conflict"
+                        onClick={handleConflictClick}
+                        className={_cs(styles.button, styles.conflictButton)}
+                    >
+                        Conflict and violence Data
+                    </Button>
+                    <Button
+                        name="diasater"
+                        onClick={handleDisasterClick}
+                        className={_cs(styles.button, styles.disasterButton)}
+                    >
+                        Disaster Data
+                    </Button>
+                </div>
             </header>
             <div className={styles.topContent}>
                 <div className={styles.leftContainer}>
@@ -472,7 +482,7 @@ function MapDashboard(props: Props) {
                     </Map>
                 </div>
                 <div className={styles.rightContainer}>
-                    <div className={styles.infoBox}>
+                    <div className={_cs(styles.infoBox, styles.topBox)}>
                         <h2>
                             New Displacement 2020
                         </h2>
@@ -526,28 +536,28 @@ function MapDashboard(props: Props) {
                             />
                         </div>
                     </div>
-                    <div className={styles.downloadBox}>
-                        <h3>
-                            Download IDMC Dataset
-                        </h3>
-                        <a
-                            href="https://i.imgur.com/NUyttbn.mp4"
-                            className={styles.downloadLink}
-                            download
-                        >
-                            <AiOutlineFileExcel className={styles.icon} />
-                            Conflict/violence - disasters 2008-2009 per year
-                        </a>
-                        <a
-                            href="https://i.imgur.com/NUyttbn.mp4"
-                            className={styles.downloadLink}
-                            download
-                        >
-                            <AiOutlineFileExcel className={styles.icon} />
-                            Disaster events 2008-2020 (new displacement) per hazard type
-                        </a>
-                    </div>
                 </div>
+            </div>
+            <div className={styles.downloadBox}>
+                <h3>
+                    Download IDMC Dataset
+                </h3>
+                <a
+                    href="https://i.imgur.com/NUyttbn.mp4"
+                    className={styles.downloadLink}
+                    download
+                >
+                    <AiOutlineFileExcel className={styles.icon} />
+                    Conflict/violence - disasters 2008-2009 per year
+                </a>
+                <a
+                    href="https://i.imgur.com/NUyttbn.mp4"
+                    className={styles.downloadLink}
+                    download
+                >
+                    <AiOutlineFileExcel className={styles.icon} />
+                    Disaster events 2008-2020 (new displacement) per hazard type
+                </a>
             </div>
             <div className={styles.bottomContent}>
                 <SortContext.Provider value={sortState}>
@@ -558,31 +568,14 @@ function MapDashboard(props: Props) {
                         columns={columns}
                     />
                 </SortContext.Provider>
-                <Pager
-                    activePage={activePage}
-                    itemsCount={response?.total ?? 0}
-                    maxItemsPerPage={pageSize}
-                    onActivePageChange={setActivePage}
-                    onItemsPerPageChange={setPageSize}
-                />
-            </div>
-            <div className={styles.footer}>
-                <h1>IDMC Query Tool</h1>
-                <div className={styles.buttonContainer}>
-                    <Button
-                        name="conflict"
-                        onClick={handleConflictClick}
-                        className={_cs(styles.button, styles.conflictButton)}
-                    >
-                        Conflict and violence Data
-                    </Button>
-                    <Button
-                        name="diasater"
-                        onClick={handleDisasterClick}
-                        className={_cs(styles.button, styles.disasterButton)}
-                    >
-                        Disaster Data
-                    </Button>
+                <div className={styles.pagerContainer}>
+                    <Pager
+                        activePage={activePage}
+                        itemsCount={response?.total ?? 0}
+                        maxItemsPerPage={pageSize}
+                        onActivePageChange={setActivePage}
+                        onItemsPerPageChange={setPageSize}
+                    />
                 </div>
             </div>
         </div>

@@ -11,6 +11,7 @@
         padding: 0 var(--spacing-extra-small);
         color: var(--color-text-label);
         font-size: var(--font-size-medium);
+        font-weight: var(--font-weight-bold);
     }
 
     .sub-label {
@@ -21,7 +22,6 @@
 
     &.conflict {
         .label,
-        .sub-label,
         .value {
             color: var(--color-conflict);
         }
@@ -29,7 +29,6 @@
 
     &.disaster {
         .label,
-        .sub-label,
         .value {
             color: var(--color-disaster);
         }
