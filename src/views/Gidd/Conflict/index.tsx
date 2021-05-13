@@ -21,7 +21,6 @@ import {
 import {
     MultiSelectInput,
     Button,
-    createNumberColumn,
     Table,
     Pager,
     SortContext,
@@ -35,7 +34,10 @@ import {
 } from '@togglecorp/toggle-form';
 
 import CustomBar from '#components/CurvedBar';
-import { createTextColumn } from '#components/tableHelpers';
+import {
+    createTextColumn,
+    createNumberColumn,
+} from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
 import {
     MultiResponse,
@@ -300,19 +302,26 @@ function Conflict(props: Props) {
                 'year',
                 'Year',
                 (item) => Number(item.year),
-                { sortable: true },
+                {
+                    sortable: true,
+                    separator: '',
+                },
             ),
             createNumberColumn<ConflictData, string>(
                 'stock_displacement',
                 'Conflict Stock Displacement',
                 (item) => item.stock_displacement,
-                { sortable: true },
+                {
+                    sortable: true,
+                },
             ),
             createNumberColumn<ConflictData, string>(
                 'new_displacements',
                 'Conflict New Displacement',
                 (item) => item.new_displacements,
-                { sortable: true },
+                {
+                    sortable: true,
+                },
             ),
         ]),
         [countriesList],

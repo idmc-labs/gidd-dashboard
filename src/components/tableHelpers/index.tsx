@@ -1,5 +1,11 @@
-import { compareString } from '@togglecorp/fujs';
 import {
+    _cs,
+    compareString,
+    compareNumber,
+} from '@togglecorp/fujs';
+import {
+    Numeral,
+    NumeralProps,
     TableHeaderCell,
     TableHeaderCellProps,
     TableColumn,
@@ -10,6 +16,8 @@ import {
 import ExternalLink, { ExternalLinkProps } from './ExternalLink';
 import Status, { StatusProps } from './Status';
 import Text, { TextProps } from './Text';
+
+import styles from './styles.css';
 
 export function createExternalLinkColumn<D, K>(
     id: string,
@@ -132,6 +140,49 @@ export function createStatusColumn<D, K>(
                 isUnderReview: value?.isUnderReview,
             };
         },
+    };
+    return item;
+}
+
+export function createNumberColumn<D, K>(
+    id: string,
+    title: string,
+    accessor: (item: D) => number | undefined | null,
+    options?: {
+        cellAsHeader?: boolean,
+        sortable?: boolean,
+        defaultSortDirection?: TableSortDirection,
+        filterType?: TableFilterType,
+        orderable?: boolean;
+        hideable?: boolean;
+        variant?: 'conflict' | 'disaster';
+        separator?: string;
+    },
+) {
+    const item: TableColumn<D, K, NumeralProps, TableHeaderCellProps> & {
+        valueSelector: (item: D) => number | undefined | null,
+        valueComparator: (foo: D, bar: D) => number,
+    } = {
+        id,
+        title,
+        cellAsHeader: options?.cellAsHeader,
+        headerCellRenderer: TableHeaderCell,
+        headerCellRendererParams: {
+            sortable: options?.sortable,
+            filterType: options?.filterType,
+            orderable: options?.orderable,
+            hideable: options?.hideable,
+        },
+        cellRenderer: Numeral,
+        headerCellRendererClassName: _cs(styles.header, styles[options?.variant]),
+        cellRendererClassName: styles.number,
+        cellRendererParams: (_: K, datum: D): NumeralProps => ({
+            value: accessor(datum),
+            placeholder: 'N/a',
+            separator: options?.separator ?? ',',
+        }),
+        valueSelector: accessor,
+        valueComparator: (foo: D, bar: D) => compareNumber(accessor(foo), accessor(bar)),
     };
     return item;
 }

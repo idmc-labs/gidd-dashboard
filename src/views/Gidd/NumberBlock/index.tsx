@@ -15,6 +15,7 @@ function NumberBlock({
     variant = 'normal',
     size = 'small',
     hideIfNoValue = false,
+    abbreviate = true,
 }: {
     label: string;
     subLabel?: string;
@@ -23,6 +24,7 @@ function NumberBlock({
     variant?: 'conflict' | 'normal' | 'disaster';
     size?: 'large' | 'medium' | 'small';
     hideIfNoValue?: boolean;
+    abbreviate?: boolean;
 }) {
     if (isNotDefined(value) && hideIfNoValue) {
         return null;
@@ -40,7 +42,7 @@ function NumberBlock({
                 className={styles.value}
                 value={value}
                 placeholder="N/a"
-                abbreviate
+                abbreviate={abbreviate}
             />
             <div className={styles.label}>
                 { label }

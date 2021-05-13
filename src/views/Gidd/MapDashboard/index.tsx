@@ -7,10 +7,8 @@ import {
     compareNumber,
 } from '@togglecorp/fujs';
 import { AiOutlineFileExcel } from 'react-icons/ai';
-import bbox from '@turf/bbox';
 import {
     Button,
-    createNumberColumn,
     Table,
     Pager,
     SortContext,
@@ -19,7 +17,6 @@ import {
 
 import Map, {
     MapContainer,
-    MapBounds,
     MapSource,
     MapLayer,
     MapTooltip,
@@ -30,7 +27,10 @@ import {
     MultiResponse,
     add,
 } from '#utils/common';
-import { createTextColumn } from '#components/tableHelpers';
+import {
+    createTextColumn,
+    createNumberColumn,
+} from '#components/tableHelpers';
 
 import allAreas from '#resources/map.json';
 import { PageType } from '..';
@@ -124,24 +124,32 @@ function Tooltip({
                 value={info?.conflict_stock_displacement}
                 size="small"
                 hideIfNoValue
+                variant="conflict"
+                abbreviate={false}
             />
             <NumberBlock
                 label="Conflict New Displacements"
                 value={info?.conflict_new_displacements}
                 size="small"
+                variant="conflict"
                 hideIfNoValue
+                abbreviate={false}
             />
             <NumberBlock
                 label="Disaster IDP"
                 value={info?.disaster_stock_displacement}
                 size="small"
+                variant="disaster"
                 hideIfNoValue
+                abbreviate={false}
             />
             <NumberBlock
                 label="Disaster New Displacements"
                 value={info?.disaster_new_displacements}
+                variant="disaster"
                 size="small"
                 hideIfNoValue
+                abbreviate={false}
             />
         </div>
     );
@@ -289,32 +297,47 @@ function MapDashboard(props: Props) {
             createNumberColumn<DisplacementData, string>(
                 'year',
                 'Year',
-                (item) => Number(item.year),
-                { sortable: true },
+                (item) => item.year,
+                {
+                    sortable: true,
+                    separator: '',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'conflict_stock_displacement',
                 'Conflict Stock Displacement',
                 (item) => item.conflict_stock_displacement,
-                { sortable: true },
+                {
+                    sortable: true,
+                    variant: 'conflict',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'conflict_new_displacements',
                 'Conflict New Displacement',
                 (item) => item.conflict_new_displacements,
-                { sortable: true },
+                {
+                    sortable: true,
+                    variant: 'conflict',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_stock_displacement',
                 'Disaster Stock Displacement',
                 (item) => item.disaster_stock_displacement,
-                { sortable: true },
+                {
+                    sortable: true,
+                    variant: 'disaster',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_new_displacements',
                 'Disaster New Displacement',
                 (item) => item.disaster_new_displacements,
-                { sortable: true },
+                {
+                    sortable: true,
+                    variant: 'disaster',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalStock',
@@ -347,7 +370,6 @@ function MapDashboard(props: Props) {
         return listToMap(response.results, (d) => d.iso3, (d) => d);
     }, [response?.results]);
 
-    const bounds = useMemo(() => bbox(allAreas), []);
     const countriesWithData = useMemo(() => {
         if (!countriesMap) {
             return undefined;
@@ -410,12 +432,12 @@ function MapDashboard(props: Props) {
                         mapStyle={lightStyle}
                         mapOptions={{
                             logoPosition: 'bottom-left',
+                            zoom: 1,
                         }}
                         scaleControlShown
                         navControlShown
                     >
                         <MapContainer className={styles.mapContainer} />
-                        <MapBounds bounds={bounds} />
                         <MapSource
                             sourceKey="all-areas"
                             sourceOptions={{

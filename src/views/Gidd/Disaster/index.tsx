@@ -24,7 +24,6 @@ import {
     Button,
     Table,
     Pager,
-    createNumberColumn,
     createDateColumn,
     SortContext,
     useSortState,
@@ -36,7 +35,10 @@ import {
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 
-import { createTextColumn } from '#components/tableHelpers';
+import {
+    createTextColumn,
+    createNumberColumn,
+} from '#components/tableHelpers';
 import CustomBar from '#components/CurvedBar';
 import { useRequest } from '#utils/request';
 import {
@@ -346,7 +348,10 @@ function Disaster(props: Props) {
                 'year',
                 'Year',
                 (item) => Number(item.year),
-                { sortable: true },
+                {
+                    sortable: true,
+                    separator: '',
+                },
             ),
             createTextColumn<DisasterData, string>(
                 'event_name',
