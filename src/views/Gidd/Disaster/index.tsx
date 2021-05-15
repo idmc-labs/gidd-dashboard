@@ -29,6 +29,7 @@ import {
     useSortState,
     useDownloading,
     convertTableData,
+    PendingMessage,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -47,22 +48,13 @@ import { useRequest } from '#utils/request';
 import {
     MultiResponse,
     add,
+    valueFormatter,
 } from '#utils/common';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
-
-/*
-interface AggregatedData {
-    year: number;
-    // eslint-disable-next-line camelcase
-    conflict_new_displacements?: number;
-    // eslint-disable-next-line camelcase
-    disaster_new_displacements?: number;
-}
-*/
 
 interface FilterFields {
     years: [number, number];
@@ -186,31 +178,8 @@ function Disaster(props: Props) {
         setFinalFormValue(finalValue);
     }, []);
 
-    /*
     const {
-        response: aggregatedDataResponse,
-    } = useRequest<AggregatedData[]>({
-        url: 'https://api.idmcdb.org/api/psql/new_displacements_by_year',
-        query: {
-            ci: 'IDMCWSHSOLO009',
-        },
-        method: 'GET',
-    });
-
-    const filteredAggregatedData = useMemo(() => {
-        if (!aggregatedDataResponse) {
-            return [];
-        }
-        return aggregatedDataResponse.filter((d) => (
-            (
-                Number(d.year) >= finalFormValue.years[0]
-                && Number(d.year) <= finalFormValue.years[1]
-            )
-        ));
-    }, [finalFormValue, aggregatedDataResponse]);
-    */
-
-    const {
+        pending,
         response,
     } = useRequest<MultiResponse<DisasterData>>({
         url: 'https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
@@ -406,6 +375,7 @@ function Disaster(props: Props) {
 
     return (
         <div className={_cs(className, styles.disaster)}>
+            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
                 <h1 className={styles.heading}>IDMC Query Tool - Disaster</h1>
                 <Button
@@ -514,8 +484,11 @@ function Disaster(props: Props) {
                         />
                         <YAxis
                             axisLine={false}
+                            tickFormatter={valueFormatter}
                         />
-                        <Tooltip />
+                        <Tooltip
+                            formatter={valueFormatter}
+                        />
                         <Legend />
                         <Bar
                             dataKey="total"

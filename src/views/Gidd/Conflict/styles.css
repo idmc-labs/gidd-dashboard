@@ -90,3 +90,7 @@
 .popup {
     z-index: 11;
 }
+
+.pending {
+    z-index: 111;
+}

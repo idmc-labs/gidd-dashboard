@@ -2919,18 +2919,20 @@
     "@storybook/client-api" "^6.0.21"
     "@togglecorp/fujs" "^1.9.2-beta.0"
 
-"@togglecorp/toggle-ui@^0.10.0-beta.6":
-  version "0.10.0-beta.6"
-  resolved "https://registry.yarnpkg.com/@togglecorp/toggle-ui/-/toggle-ui-0.10.0-beta.6.tgz#dab1d24746ca2789f7130169da0cb4c4b39a67ef"
-  integrity sha512-Oq9ve+cARcIVpsi3k4mB2w9StQjyMD7gNATjC+wkhE81rlWcvfOKEl64oagVG20XV7WXwZJpqd7Bj01d9DjlPA==
+"@togglecorp/toggle-ui@^0.10.1-beta.2":
+  version "0.10.1-beta.2"
+  resolved "https://registry.yarnpkg.com/@togglecorp/toggle-ui/-/toggle-ui-0.10.1-beta.2.tgz#8a7a99089c1db642457319e7160819145625cf1c"
+  integrity sha512-pJKnAl2/QGfQSkyI3gj8SeeRopPkHP1buEMqJSYcW1pVyLNY6/Z16UJ4cDcvde3v7Vys7Lwzx8E1zGoBCWZx3A==
   dependencies:
     "@babel/runtime-corejs3" "^7.11.2"
     "@togglecorp/fujs" "^1.9.2-beta.0"
+    "@types/requestidlecallback" "^0.3.1"
     d3-axis "^2.0.0"
     d3-scale "^3.2.3"
     file-saver "^2.0.2"
     react-icons "^3.11.0"
     resize-observer "^1.0.0"
+    resize-observer-polyfill "^1.5.1"
 
 "@turf/bbox-polygon@^6.0.1":
   version "6.0.1"
@@ -3267,6 +3269,11 @@
   dependencies:
     "@types/d3-shape" "^1"
     "@types/react" "*"
+
+"@types/requestidlecallback@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@types/requestidlecallback/-/requestidlecallback-0.3.1.tgz#34bb89753b1cdc72d0547522527b1cb0f02b5ec4"
+  integrity sha512-BnnRkgWYijCIndUn+LgoqKHX/hNpJC5G03B9y7mZya/C2gUQTSn75fEj3ZP1/Rl2E6EYeXh2/7/8UNEZ4X7HuQ==
 
 "@types/resize-observer-browser@^0.1.5":
   version "0.1.5"

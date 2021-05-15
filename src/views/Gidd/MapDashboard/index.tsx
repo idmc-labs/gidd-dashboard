@@ -21,6 +21,7 @@ import {
     useSortState,
     useDownloading,
     convertTableData,
+    PendingMessage,
 } from '@togglecorp/toggle-ui';
 
 import Map, {
@@ -83,8 +84,6 @@ interface HoveredRegion {
     info?: DisplacementData;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noOp = () => {};
 const layerPaint: mapboxgl.FillPaint = {
     'fill-color': '#e6e6e6',
     'fill-opacity': 1,
@@ -187,6 +186,7 @@ function MapDashboard(props: Props) {
     const [pageSize, setPageSize] = useState<number>(10);
 
     const {
+        pending,
         response,
     } = useRequest<MultiResponse<DisplacementData>>({
         url: 'https://api.idmcdb.org/api/displacement_data',
@@ -253,7 +253,10 @@ function MapDashboard(props: Props) {
         sortedData,
     } = useMemo(() => {
         if (!response?.results) {
-            return [];
+            return {
+                paginatedData: [],
+                sortedData: [],
+            };
         }
         const finalSortedData = [...response?.results];
         if (sorting) {
@@ -394,7 +397,11 @@ function MapDashboard(props: Props) {
             return undefined;
         }
         const areas = (allAreas as GeoJson)
-            .features.filter((a) => isDefined(countriesMap[a?.properties?.iso3]));
+            .features.filter((a) => isDefined(countriesMap[a?.properties?.iso3]))
+            .map((a, index) => ({
+                ...a,
+                id: index + 1,
+            }));
         return {
             ...allAreas,
             features: areas,
@@ -439,6 +446,7 @@ function MapDashboard(props: Props) {
 
     return (
         <div className={_cs(className, styles.mapDashboard)}>
+            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
                 <h1 className={styles.heading}>2020 Internal Displacement</h1>
                 <div className={styles.buttonContainer}>
@@ -479,7 +487,6 @@ function MapDashboard(props: Props) {
                         >
                             <MapLayer
                                 layerKey="all-areas-fill"
-                                onMouseEnter={noOp}
                                 layerOptions={{
                                     type: 'fill',
                                     paint: layerPaint,
@@ -487,7 +494,6 @@ function MapDashboard(props: Props) {
                             />
                             <MapLayer
                                 layerKey="all-areas"
-                                onMouseEnter={noOp}
                                 layerOptions={{
                                     type: 'line',
                                     paint: outlinePaintDark,
@@ -513,7 +519,6 @@ function MapDashboard(props: Props) {
                                 />
                                 <MapLayer
                                     layerKey="all-areas-selected"
-                                    onMouseEnter={noOp}
                                     layerOptions={{
                                         type: 'line',
                                         paint: outlinePaintLight,

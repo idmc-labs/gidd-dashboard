@@ -1,16 +1,23 @@
-import bbox from '@turf/bbox';
-import bboxPolygon from '@turf/bbox-polygon';
-import combine from '@turf/combine';
-import featureCollection from 'turf-featurecollection';
 import {
     isValidUrl as isValidRemoteUrl,
     isDefined,
     sum,
+    Lang,
+    formattedNormalize,
 } from '@togglecorp/fujs';
 import {
     BasicEntity,
     EnumEntity,
 } from '#types';
+
+export function valueFormatter(value: number) {
+    const {
+        number,
+        normalizeSuffix = '',
+    } = formattedNormalize(value, Lang.en);
+
+    return `${number.toPrecision(3)} ${normalizeSuffix}`;
+}
 
 export const basicEntityKeySelector = (d: BasicEntity): string => d.id;
 export const basicEntityLabelSelector = (d: BasicEntity) => d.name;
@@ -30,34 +37,6 @@ export function isValidUrl(url: string | undefined): url is string {
     }
     const sanitizedUrl = url.replace(rege, 'localhost.com');
     return isValidRemoteUrl(sanitizedUrl);
-}
-
-export function listToMap<T, K extends string | number, V>(
-    items: T[],
-    keySelector: (val: T, index: number) => K,
-    valueSelector: (val: T, index: number) => V,
-) {
-    const val: Partial<Record<K, V>> = items.reduce(
-        (acc, item, index) => {
-            const key = keySelector(item, index);
-            const value = valueSelector(item, index);
-            return {
-                ...acc,
-                [key]: value,
-            };
-        },
-        {},
-    );
-    return val;
-}
-
-type Bounds = [number, number, number, number];
-export function mergeBbox(bboxes: GeoJSON.BBox[]) {
-    const boundsFeatures = bboxes.map((b) => bboxPolygon(b));
-    const boundsFeatureCollection = featureCollection(boundsFeatures);
-    const combinedPolygons = combine(boundsFeatureCollection);
-    const maxBounds = bbox(combinedPolygons);
-    return maxBounds as Bounds;
 }
 
 export interface MultiResponse<T> {
