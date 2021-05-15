@@ -6,13 +6,21 @@ import {
     compareString,
     compareNumber,
 } from '@togglecorp/fujs';
-import { AiOutlineFileExcel } from 'react-icons/ai';
+import {
+    IoMdDownload,
+} from 'react-icons/io';
+import {
+    AiOutlineFileExcel,
+    AiOutlineInfoCircle,
+} from 'react-icons/ai';
 import {
     Button,
     Table,
     Pager,
     SortContext,
     useSortState,
+    useDownloading,
+    convertTableData,
 } from '@togglecorp/toggle-ui';
 
 import Map, {
@@ -36,6 +44,9 @@ import allAreas from '#resources/map.json';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
+
+const newDisplacementTooltip = 'New displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense,the number of new displacements does not equal to the number of people displaced during the year.';
+const idpTooltip = 'Total number of IDPs corresponds to the totalnumber of people living in internal displacement as of31 December 2020.';
 
 interface DisplacementData {
     iso3: string;
@@ -75,7 +86,7 @@ interface HoveredRegion {
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = () => {};
 const layerPaint: mapboxgl.FillPaint = {
-    'fill-color': '#fff',
+    'fill-color': '#e6e6e6',
     'fill-opacity': 1,
 };
 const layerPaintBlue: mapboxgl.FillPaint = {
@@ -83,7 +94,7 @@ const layerPaintBlue: mapboxgl.FillPaint = {
         'case',
         ['==', ['feature-state', 'hovered'], 1],
         '#37558f',
-        '#0774e1',
+        '#636362',
     ],
     'fill-opacity': 1,
 };
@@ -237,13 +248,16 @@ function MapDashboard(props: Props) {
     const newDisplacementTotal = newConflictTotal + newDisasterTotal;
     const totalIdpCount = totalIdpConflictCount + totalIdpDisasterCount;
 
-    const paginatedData = useMemo(() => {
+    const {
+        paginatedData,
+        sortedData,
+    } = useMemo(() => {
         if (!response?.results) {
             return [];
         }
-        const finalPaginatedData = [...response?.results];
+        const finalSortedData = [...response?.results];
         if (sorting) {
-            finalPaginatedData.sort((a, b) => {
+            finalSortedData.sort((a, b) => {
                 if (sorting.name === 'geo_name') {
                     return compareString(
                         a[sorting.name],
@@ -281,16 +295,20 @@ function MapDashboard(props: Props) {
                 return 1;
             });
         }
+        const finalPaginatedData = [...finalSortedData];
         finalPaginatedData.splice(0, (activePage - 1) * pageSize);
         finalPaginatedData.length = pageSize;
-        return finalPaginatedData;
+        return {
+            paginatedData: finalPaginatedData,
+            sortedData: finalSortedData,
+        };
     }, [sorting, activePage, pageSize, response?.results]);
 
     const columns = useMemo(
         () => ([
             createTextColumn<DisplacementData, string>(
                 'geo_name',
-                'Name',
+                'Country',
                 (item) => item.geo_name,
                 { sortable: true },
             ),
@@ -304,15 +322,6 @@ function MapDashboard(props: Props) {
                 },
             ),
             createNumberColumn<DisplacementData, string>(
-                'conflict_stock_displacement',
-                'Conflict Stock Displacement',
-                (item) => item.conflict_stock_displacement,
-                {
-                    sortable: true,
-                    variant: 'conflict',
-                },
-            ),
-            createNumberColumn<DisplacementData, string>(
                 'conflict_new_displacements',
                 'Conflict New Displacement',
                 (item) => item.conflict_new_displacements,
@@ -322,12 +331,12 @@ function MapDashboard(props: Props) {
                 },
             ),
             createNumberColumn<DisplacementData, string>(
-                'disaster_stock_displacement',
-                'Disaster Stock Displacement',
-                (item) => item.disaster_stock_displacement,
+                'conflict_stock_displacement',
+                'Conflict Stock Displacement',
+                (item) => item.conflict_stock_displacement,
                 {
                     sortable: true,
-                    variant: 'disaster',
+                    variant: 'conflict',
                 },
             ),
             createNumberColumn<DisplacementData, string>(
@@ -340,15 +349,25 @@ function MapDashboard(props: Props) {
                 },
             ),
             createNumberColumn<DisplacementData, string>(
-                'totalStock',
-                'Total Stock Displacement',
-                (item) => add([item.disaster_stock_displacement, item.conflict_stock_displacement]),
-                { sortable: true },
+                'disaster_stock_displacement',
+                'Disaster Stock Displacement',
+                (item) => item.disaster_stock_displacement,
+                {
+                    sortable: true,
+                    variant: 'disaster',
+                    placeholder: '0',
+                },
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalNew',
                 'Total New Displacement',
                 (item) => add([item.disaster_new_displacements, item.conflict_new_displacements]),
+                { sortable: true },
+            ),
+            createNumberColumn<DisplacementData, string>(
+                'totalStock',
+                'Total Stock Displacement',
+                (item) => add([item.disaster_stock_displacement, item.conflict_stock_displacement]),
                 { sortable: true },
             ),
         ]),
@@ -403,6 +422,19 @@ function MapDashboard(props: Props) {
             setHoveredRegionProperties(undefined);
         },
         [setHoveredRegionProperties],
+    );
+
+    const getCsvValue = useCallback(
+        () => convertTableData(
+            sortedData,
+            columns,
+        ),
+        [sortedData, columns],
+    );
+
+    const handleDownload = useDownloading(
+        'GIDD 2020',
+        getCsvValue,
     );
 
     return (
@@ -505,8 +537,12 @@ function MapDashboard(props: Props) {
                 </div>
                 <div className={styles.rightContainer}>
                     <div className={_cs(styles.infoBox, styles.topBox)}>
-                        <h2>
+                        <h2 className={styles.heading}>
                             New Displacement 2020
+                            <AiOutlineInfoCircle
+                                className={styles.tooltip}
+                                title={newDisplacementTooltip}
+                            />
                         </h2>
                         <NumberBlock
                             label="Total"
@@ -532,8 +568,12 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                     <div className={styles.infoBox}>
-                        <h2>
+                        <h2 className={styles.heading}>
                             Total Number of IDPs
+                            <AiOutlineInfoCircle
+                                className={styles.tooltip}
+                                title={newDisplacementTooltip}
+                            />
                         </h2>
                         <NumberBlock
                             label="Total"
@@ -565,15 +605,15 @@ function MapDashboard(props: Props) {
                     Download IDMC Dataset
                 </h3>
                 <a
-                    href="https://i.imgur.com/NUyttbn.mp4"
+                    href="https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=idmc_disaster_all_dataset.xlsx"
                     className={styles.downloadLink}
                     download
                 >
                     <AiOutlineFileExcel className={styles.icon} />
-                    Conflict/violence - disasters 2008-2009 per year
+                    Conflict/violence - disasters 2008-2020 per year
                 </a>
                 <a
-                    href="https://i.imgur.com/NUyttbn.mp4"
+                    href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=idmc_disaster_all_dataset.xlsx"
                     className={styles.downloadLink}
                     download
                 >
@@ -591,6 +631,17 @@ function MapDashboard(props: Props) {
                     />
                 </SortContext.Provider>
                 <div className={styles.pagerContainer}>
+                    <Button
+                        name="download"
+                        onClick={handleDownload}
+                        icons={(
+                            <IoMdDownload />
+                        )}
+                        disabled={!columns || !paginatedData}
+                        variant="primary"
+                    >
+                        Download
+                    </Button>
                     <Pager
                         activePage={activePage}
                         itemsCount={response?.total ?? 0}

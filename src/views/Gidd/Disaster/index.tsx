@@ -27,6 +27,8 @@ import {
     createDateColumn,
     SortContext,
     useSortState,
+    useDownloading,
+    convertTableData,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -34,6 +36,7 @@ import {
     createSubmitHandler,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
+import { IoMdDownload } from 'react-icons/io';
 
 import {
     createTextColumn,
@@ -235,7 +238,8 @@ function Disaster(props: Props) {
         ).map((d) => ({
             key: d.iso3,
             value: d.geo_name,
-        }));
+        })).sort((a, b) => compareString(a.value, b.value));
+
         // NOTE: I've grouped sub types based on hazard category
         const subTypes = unique(
             response.results.filter((d) => isDefined(d.hazard_type),
@@ -387,6 +391,19 @@ function Disaster(props: Props) {
         [countriesList],
     );
 
+    const getCsvValue = useCallback(
+        () => convertTableData(
+            filteredData,
+            columns,
+        ),
+        [filteredData, columns],
+    );
+
+    const handleDownload = useDownloading(
+        'Disaster Data',
+        getCsvValue,
+    );
+
     return (
         <div className={_cs(className, styles.disaster)}>
             <header className={styles.header}>
@@ -520,6 +537,17 @@ function Disaster(props: Props) {
                     </SortContext.Provider>
                 </div>
                 <div className={styles.footerContainer}>
+                    <Button
+                        name="download"
+                        onClick={handleDownload}
+                        icons={(
+                            <IoMdDownload />
+                        )}
+                        disabled={!columns || !paginatedData}
+                        variant="primary"
+                    >
+                        Download
+                    </Button>
                     <Pager
                         activePage={activePage}
                         itemsCount={totalCount}

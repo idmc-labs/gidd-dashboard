@@ -9,6 +9,7 @@ import {
     listToGroupList,
     mapToList,
 } from '@togglecorp/fujs';
+import { IoMdDownload } from 'react-icons/io';
 import {
     BarChart,
     CartesianGrid,
@@ -25,6 +26,8 @@ import {
     Pager,
     SortContext,
     useSortState,
+    useDownloading,
+    convertTableData,
 } from '@togglecorp/toggle-ui';
 import {
     requiredCondition,
@@ -202,7 +205,7 @@ function Conflict(props: Props) {
         ).map((d) => ({
             key: d.iso3,
             value: d.geo_name,
-        }));
+        })).sort((a, b) => compareString(a.value, b.value));
     }, [response?.results]);
 
     const {
@@ -327,6 +330,19 @@ function Conflict(props: Props) {
         [countriesList],
     );
 
+    const getCsvValue = useCallback(
+        () => convertTableData(
+            filteredData,
+            columns,
+        ),
+        [filteredData, columns],
+    );
+
+    const handleDownload = useDownloading(
+        'Conflict Data',
+        getCsvValue,
+    );
+
     return (
         <div className={_cs(className, styles.conflict)}>
             <header className={styles.header}>
@@ -387,7 +403,7 @@ function Conflict(props: Props) {
                 </form>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New Displacement from
+                        {`New Displacement and stock from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -454,6 +470,17 @@ function Conflict(props: Props) {
                     </SortContext.Provider>
                 </div>
                 <div className={styles.footerContainer}>
+                    <Button
+                        name="download"
+                        onClick={handleDownload}
+                        icons={(
+                            <IoMdDownload />
+                        )}
+                        disabled={!columns || !paginatedData}
+                        variant="primary"
+                    >
+                        Download
+                    </Button>
                     <Pager
                         activePage={activePage}
                         itemsCount={totalCount}

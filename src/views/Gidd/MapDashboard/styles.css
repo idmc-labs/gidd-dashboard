@@ -66,6 +66,15 @@
             .info-box {
                 flex-basis: 40%;
 
+                .heading {
+                    display: flex;
+                    align-items: center;
+
+                    .tooltip {
+                        margin: 0 var(--spacing-medium);
+                    }
+                }
+
                 .inline-block {
                     display: flex;
 
@@ -111,7 +120,9 @@
 
         .pager-container {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-extra-small) var(--spacing-large);
         }
     }
 }

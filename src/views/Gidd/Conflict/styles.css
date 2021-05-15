@@ -79,9 +79,10 @@
 
         .footer-container {
             display: flex;
+            align-items: center;
             flex-shrink: 0;
-            justify-content: flex-end;
-            padding: var(--spacing-large);
+            justify-content: space-between;
+            padding: var(--spacing-small) var(--spacing-large);
         }
     }
 }

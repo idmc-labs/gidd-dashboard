@@ -157,6 +157,7 @@ export function createNumberColumn<D, K>(
         hideable?: boolean;
         variant?: 'conflict' | 'disaster';
         separator?: string;
+        placeholder?: string;
     },
 ) {
     const item: TableColumn<D, K, NumeralProps, TableHeaderCellProps> & {
@@ -174,11 +175,14 @@ export function createNumberColumn<D, K>(
             hideable: options?.hideable,
         },
         cellRenderer: Numeral,
-        headerCellRendererClassName: _cs(styles.header, styles[options?.variant]),
+        headerCellRendererClassName: _cs(
+            styles.header,
+            styles[options?.variant],
+        ),
         cellRendererClassName: styles.number,
         cellRendererParams: (_: K, datum: D): NumeralProps => ({
             value: accessor(datum),
-            placeholder: 'N/a',
+            placeholder: options?.placeholder ?? 'N/a',
             separator: options?.separator ?? ',',
         }),
         valueSelector: accessor,
