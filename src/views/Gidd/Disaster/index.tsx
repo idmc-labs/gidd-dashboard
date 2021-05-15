@@ -34,10 +34,10 @@ import {
 import {
     requiredCondition,
     useForm,
-    createSubmitHandler,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 import { IoMdDownload } from 'react-icons/io';
+import useDebouncedValue from '#hooks/useDebouncedValue';
 
 import {
     createTextColumn,
@@ -156,27 +156,19 @@ function Disaster(props: Props) {
     } = props;
 
     const {
-        pristine,
         value,
         onValueChange,
-        validate,
-        onErrorSet,
     } = useForm(defaultFormValues, schema);
 
-    const [finalFormValue, setFinalFormValue] = useState<FilterFields>(defaultFormValues);
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
     const sortState = useSortState();
     const { sorting } = sortState;
+    const finalFormValue = useDebouncedValue(value);
 
     const handleBackButton = useCallback(() => {
         onSelectedPageChange('map');
     }, [onSelectedPageChange]);
-
-    const handleSubmit = useCallback((finalValue: FormType) => {
-        setActivePage(1);
-        setFinalFormValue(finalValue);
-    }, []);
 
     const {
         pending,
@@ -313,7 +305,7 @@ function Disaster(props: Props) {
         () => ([
             createTextColumn<DisasterData, string>(
                 'geo_name',
-                'Name',
+                'Country',
                 (item) => item.geo_name ?? countriesList.find((c) => c.key === item.iso3)?.value,
                 { sortable: true },
             ),
@@ -387,10 +379,7 @@ function Disaster(props: Props) {
                 </Button>
             </header>
             <div className={styles.content}>
-                <form
-                    className={styles.filters}
-                    onSubmit={createSubmitHandler(validate, onErrorSet, handleSubmit)}
-                >
+                <div className={styles.filters}>
                     <MultiSelectInput<string, 'regions', Item, any>
                         name="regions"
                         className={styles.filter}
@@ -436,16 +425,7 @@ function Disaster(props: Props) {
                         onChange={onValueChange}
                         value={value.years}
                     />
-                    <Button
-                        className={styles.button}
-                        name={undefined}
-                        variant="primary"
-                        type="submit"
-                        disabled={pristine}
-                    >
-                        Apply
-                    </Button>
-                </form>
+                </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
                         {`New Displacement from

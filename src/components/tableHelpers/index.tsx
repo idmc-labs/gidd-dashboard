@@ -182,7 +182,7 @@ export function createNumberColumn<D, K>(
         cellRendererClassName: styles.number,
         cellRendererParams: (_: K, datum: D): NumeralProps => ({
             value: accessor(datum),
-            placeholder: options?.placeholder ?? 'N/a',
+            placeholder: options?.placeholder ?? '0',
             separator: options?.separator ?? ',',
         }),
         valueSelector: accessor,

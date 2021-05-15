@@ -18,6 +18,8 @@ import {
     Tooltip,
     Legend,
     Bar,
+    LineChart,
+    Line,
 } from 'recharts';
 import {
     MultiSelectInput,
@@ -33,7 +35,6 @@ import {
 import {
     requiredCondition,
     useForm,
-    createSubmitHandler,
     ObjectSchema,
 } from '@togglecorp/toggle-form';
 
@@ -49,6 +50,7 @@ import {
     valueFormatter,
 } from '#utils/common';
 
+import useDebouncedValue from '#hooks/useDebouncedValue';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
@@ -127,16 +129,14 @@ function Conflict(props: Props) {
     } = props;
 
     const {
-        pristine,
         value,
         onValueChange,
-        validate,
-        onErrorSet,
     } = useForm(defaultFormValues, schema);
 
-    const [finalFormValue, setFinalFormValue] = useState<FormType>(defaultFormValues);
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+
+    const finalFormValue = useDebouncedValue(value);
 
     const sortState = useSortState();
     const { sorting } = sortState;
@@ -144,10 +144,6 @@ function Conflict(props: Props) {
     const handleBackButton = useCallback(() => {
         onSelectedPageChange('map');
     }, [onSelectedPageChange]);
-
-    const handleSubmit = useCallback((finalValue: FormType) => {
-        setFinalFormValue(finalValue);
-    }, []);
 
     const {
         pending,
@@ -210,6 +206,9 @@ function Conflict(props: Props) {
                 total: add(
                     d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
                 ),
+                totalStock: add(
+                    d.map((datum) => datum.stock_displacement).filter((datum) => isDefined(datum)),
+                ),
             })
         ));
         const totalNewDisplacements = sum(
@@ -264,7 +263,7 @@ function Conflict(props: Props) {
         () => ([
             createTextColumn<ConflictData, string>(
                 'geo_name',
-                'Name',
+                'Country',
                 (item) => (
                     item.geo_name ?? countriesList?.find((c) => c.key === item.iso3)?.value
                 ),
@@ -326,10 +325,7 @@ function Conflict(props: Props) {
                 </Button>
             </header>
             <div className={styles.content}>
-                <form
-                    className={styles.filters}
-                    onSubmit={createSubmitHandler(validate, onErrorSet, handleSubmit)}
-                >
+                <div className={styles.filters}>
                     <MultiSelectInput<string, 'regions', Item, any>
                         name="regions"
                         className={styles.filter}
@@ -361,16 +357,7 @@ function Conflict(props: Props) {
                         onChange={onValueChange}
                         value={value.years}
                     />
-                    <Button
-                        className={styles.button}
-                        name={undefined}
-                        variant="primary"
-                        type="submit"
-                        disabled={pristine}
-                    >
-                        Apply
-                    </Button>
-                </form>
+                </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
                         {`New Displacement and stock from
@@ -402,7 +389,7 @@ function Conflict(props: Props) {
                             size="medium"
                         />
                         <BarChart
-                            width={500}
+                            width={400}
                             height={200}
                             data={filteredAggregatedData}
                         >
@@ -430,6 +417,37 @@ function Conflict(props: Props) {
                                 maxBarSize={16}
                             />
                         </BarChart>
+                        <LineChart
+                            width={400}
+                            height={200}
+                            data={filteredAggregatedData}
+                        >
+                            <XAxis
+                                dataKey="year"
+                                axisLine={false}
+                            />
+                            <CartesianGrid
+                                vertical={false}
+                                strokeDasharray="3 3"
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickFormatter={valueFormatter}
+                            />
+                            <Tooltip
+                                formatter={valueFormatter}
+                            />
+                            <Legend />
+                            <Line
+                                dataKey="totalStock"
+                                name="Conflict Stock"
+                                key="totalStock"
+                                stroke="var(--color-conflict)"
+                                strokeWidth={2}
+                                connectNulls
+                                dot
+                            />
+                        </LineChart>
                     </div>
                 </div>
                 <div className={styles.tableContainer}>

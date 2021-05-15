@@ -59,6 +59,7 @@
 
             .numbers-container {
                 display: flex;
+                flex-wrap: wrap;
                 padding: calc(var(--spacing-large) - var(--spacing-small));
 
                 .number-block {
