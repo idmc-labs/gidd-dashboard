@@ -49,6 +49,8 @@ import {
     MultiResponse,
     add,
     valueFormatter,
+    regions,
+    regionMap,
 } from '#utils/common';
 
 import { PageType } from '..';
@@ -112,6 +114,7 @@ const disasterItemKeySelector = (d: DisasterData) => d.key;
 interface Item {
     key: string;
     value: string;
+    countries?: string[];
 }
 
 interface ItemWithGroup {
@@ -128,21 +131,6 @@ const groupedItemLabelSelector = (item: ItemWithGroup) => item.value;
 
 const groupKeySelector = (item: ItemWithGroup) => item.parent;
 const groupLabelSelector = (item: ItemWithGroup) => item.parent;
-
-const regions: Item[] = [
-    {
-        key: '1',
-        value: 'Asia',
-    },
-    {
-        key: '2',
-        value: 'Africa',
-    },
-    {
-        key: '3',
-        value: 'Europe',
-    },
-];
 
 interface Props {
     className?: string;
@@ -231,6 +219,7 @@ function Disaster(props: Props) {
                 noTotal: 0,
             };
         }
+        const regionCountries = finalFormValue.regions.map((r) => regionMap[r]).flat();
         const newFilteredData = response.results.filter((d) => (
             (
                 Number(d.year) >= finalFormValue.years[0]
@@ -241,6 +230,9 @@ function Disaster(props: Props) {
             ) && (
                 finalFormValue.disasterType.length === 0
                 || finalFormValue.disasterType.indexOf(d.hazard_sub_type) !== -1
+            ) && (
+                finalFormValue.regions.length === 0
+                || regionCountries.indexOf(d.iso3) !== -1
             )
         )).map((d) => ({ ...d, key: randomString() }));
         const dataByYear = listToGroupList(newFilteredData, (d) => d.year);

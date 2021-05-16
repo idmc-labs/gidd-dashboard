@@ -48,6 +48,8 @@ import {
     MultiResponse,
     add,
     valueFormatter,
+    regions,
+    regionMap,
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
@@ -97,25 +99,11 @@ const conflictItemKeySelector = (d: ConflictData) => `${d.iso3}-${d.year}`;
 interface Item {
     key: string;
     value: string;
+    countries?: string[];
 }
 
 const inputKeySelector = (d: Item) => d.key;
 const inputValueSelector = (d: Item) => d.value;
-
-const regions: Item[] = [
-    {
-        key: '1',
-        value: 'Asia',
-    },
-    {
-        key: '2',
-        value: 'Africa',
-    },
-    {
-        key: '3',
-        value: 'Europe',
-    },
-];
 
 interface Props {
     className?: string;
@@ -190,6 +178,7 @@ function Conflict(props: Props) {
                 noAsOfEnd: 0,
             };
         }
+        const regionCountries = finalFormValue.regions.map((r) => regionMap[r]).flat();
         const newFilteredData = response.results.filter((d) => (
             (
                 Number(d.year) >= finalFormValue.years[0]
@@ -197,7 +186,11 @@ function Conflict(props: Props) {
             ) && (
                 finalFormValue.countries.length === 0
                 || finalFormValue.countries.indexOf(d.iso3) !== -1
+            ) && (
+                finalFormValue.regions.length === 0
+                || regionCountries.indexOf(d.iso3) !== -1
             )
+
         ));
         const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
         const dataTotalByYear = mapToList(dataByYear, (d, k) => (
