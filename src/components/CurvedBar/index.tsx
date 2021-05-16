@@ -1,6 +1,7 @@
 import React from 'react';
 
-function CustomBar(props) {
+// NOTE: No types defined by Recharts
+function CustomBar(props: any) {
     const {
         fill,
         x,

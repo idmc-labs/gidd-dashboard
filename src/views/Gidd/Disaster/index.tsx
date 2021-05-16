@@ -11,6 +11,9 @@ import {
     mapToList,
 } from '@togglecorp/fujs';
 import {
+    PieChart,
+    Pie,
+    Cell,
     BarChart,
     CartesianGrid,
     XAxis,
@@ -51,12 +54,22 @@ import {
     valueFormatter,
     regions,
     regionMap,
+    calcPieSizes,
 } from '#utils/common';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
+
+const colorScheme = [
+    '#06169e',
+    '#0738c8',
+    '#0774e1',
+    '#018ec9',
+    '#2cb7e1',
+    '#5ed9ed',
+];
 
 interface FilterFields {
     years: [number, number];
@@ -209,11 +222,14 @@ function Disaster(props: Props) {
         noOfCountries,
         filteredData,
         filteredAggregatedData,
+        filteredPieData,
         noTotal,
     } = useMemo(() => {
         if (!response?.results) {
             return {
                 filteredData: [],
+                filteredAggregatedData: [],
+                filteredPieData: [],
                 noOfCountries: 0,
                 totalCount: 0,
                 noTotal: 0,
@@ -244,6 +260,16 @@ function Disaster(props: Props) {
                 ),
             })
         ));
+        const dataByHazardType = listToGroupList(newFilteredData, (d) => d.hazard_type);
+        const dataTotalByHazardType = mapToList(dataByHazardType, (d, k) => (
+            ({
+                label: String(k),
+                total: add(
+                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
+                ),
+            })
+        ));
+        const pies = calcPieSizes(dataTotalByHazardType);
         const totalNewDisplacements = sum(
             newFilteredData.map((d) => d.new_displacements).filter(isDefined),
         );
@@ -253,6 +279,7 @@ function Disaster(props: Props) {
             totalCount: newFilteredData.length,
             noTotal: totalNewDisplacements,
             filteredAggregatedData: dataTotalByYear,
+            filteredPieData: pies,
         };
     }, [response?.results, finalFormValue]);
 
@@ -470,6 +497,29 @@ function Disaster(props: Props) {
                             maxBarSize={16}
                         />
                     </BarChart>
+                    <PieChart
+                        width={500}
+                        height={200}
+                    >
+                        <Tooltip
+                            formatter={valueFormatter}
+                        />
+                        <Legend />
+                        <Pie
+                            data={filteredPieData}
+                            dataKey="total"
+                            nameKey="label"
+                        >
+                            {filteredPieData.map(({ label }, index) => (
+                                <Cell
+                                    key={label}
+                                    fill={colorScheme[
+                                        index % colorScheme.length
+                                    ]}
+                                />
+                            ))}
+                        </Pie>
+                    </PieChart>
                 </div>
                 <div className={styles.tableContainer}>
                     <SortContext.Provider value={sortState}>

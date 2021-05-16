@@ -12,7 +12,7 @@ import Gidd from '../../views/Gidd';
 function App() {
     const requestContextValue = {
         transformUrl: (d: string) => d,
-        transformOptions: (url, options) => processOptions(options),
+        transformOptions: (_: string, options) => processOptions(options),
     };
 
     return (

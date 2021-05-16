@@ -65,10 +65,10 @@ interface DisplacementData {
 }
 
 interface GeoJsonFeature {
+    id?: number;
     type: string;
     properties: Record<string, unknown>;
     geometry: unknown;
-    id: number;
 }
 
 // We should use one from mapbox
@@ -472,7 +472,7 @@ function MapDashboard(props: Props) {
                         mapStyle={lightStyle}
                         mapOptions={{
                             logoPosition: 'bottom-left',
-                            zoom: 1,
+                            zoom: 0.9,
                         }}
                         scaleControlShown
                         navControlShown
@@ -577,7 +577,7 @@ function MapDashboard(props: Props) {
                             Total Number of IDPs
                             <AiOutlineInfoCircle
                                 className={styles.tooltip}
-                                title={newDisplacementTooltip}
+                                title={idpTooltip}
                             />
                         </h2>
                         <NumberBlock

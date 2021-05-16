@@ -11,7 +11,7 @@ export interface ContextInterface {
 
 const defaultContext: ContextInterface = {
     transformUrl: (url) => url,
-    transformOptions: (url, { body, ...otherOptions }) => ({
+    transformOptions: (_, { body, ...otherOptions }) => ({
         method: 'GET',
         headers: {
             Accept: 'application/json',

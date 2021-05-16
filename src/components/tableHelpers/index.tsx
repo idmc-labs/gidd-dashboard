@@ -177,7 +177,7 @@ export function createNumberColumn<D, K>(
         cellRenderer: Numeral,
         headerCellRendererClassName: _cs(
             styles.header,
-            styles[options?.variant],
+            options?.variant && styles[options.variant],
         ),
         cellRendererClassName: styles.number,
         cellRendererParams: (_: K, datum: D): NumeralProps => ({

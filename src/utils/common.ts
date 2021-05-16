@@ -5,6 +5,7 @@ import {
     listToMap,
     Lang,
     formattedNormalize,
+    compareNumber,
 } from '@togglecorp/fujs';
 import {
     BasicEntity,
@@ -100,3 +101,24 @@ export const regions = [
 ];
 
 export const regionMap = listToMap(regions, (d) => d.key, (d) => d.countries);
+
+export function calcPieSizes(data: { label: string; total: number }[], noOfPies = 5) {
+    const sortedData = data.sort((a, b) => compareNumber(a.total, b.total, -1));
+
+    const topData = [...sortedData];
+    if (topData.length <= noOfPies) {
+        return topData;
+    }
+    topData.length = noOfPies;
+
+    const otherData = [...sortedData];
+    otherData.splice(0, noOfPies);
+
+    return ([
+        ...topData,
+        {
+            label: 'Other',
+            total: otherData.reduce((acc, val) => (acc + val.total), 0),
+        },
+    ]);
+}
