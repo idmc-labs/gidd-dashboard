@@ -41,42 +41,5 @@
 
         <!-- External resources  -->
         <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-
-        <script>
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker
-                        .register('/service-worker.js')
-                        .then((registration) => {
-                            console.info('SW registered: ', registration);
-                            registration.onupdatefound = () => {
-                                const installingWorker = registration.installing;
-                                installingWorker.onstatechange = () => {
-                                    switch (installingWorker.state) {
-                                        case 'installed':
-                                            if (navigator.serviceWorker.controller) {
-                                                // New update is available
-                                                console.info('SW: New update is available!');
-                                                const shouldUpdate = window.confirm('New update is available. Do you want to update now?');
-                                                if (shouldUpdate) {
-                                                    window.location.reload(true);
-                                                }
-                                            } else {
-                                                // No new update
-                                                console.info('SW: No new updates!');
-                                            }
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                };
-                            };
-                        })
-                        .catch((registrationError) => {
-                            console.error('SW registration failed: ', registrationError);
-                        });
-                });
-            }
-        </script>
     </body>
 </html>

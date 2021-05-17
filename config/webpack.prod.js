@@ -81,6 +81,7 @@ module.exports = (env) => {
                     },
                 }),
             ],
+            /*
             splitChunks: {
                 cacheGroups: {
                     vendors: {
@@ -90,7 +91,8 @@ module.exports = (env) => {
                     },
                 },
             },
-            runtimeChunk: 'single',
+            */
+            runtimeChunk: false,
             moduleIds: 'hashed',
         },
 
@@ -190,6 +192,7 @@ module.exports = (env) => {
                 filename: 'css/[name].[contenthash].css',
                 chunkFilename: 'css/[id].[contenthash].css',
             }),
+            /*
             new WorkboxPlugin.GenerateSW({
                 // these options encourage the ServiceWorkers to get in there fast
                 // and not allow any straggling "old" SWs to hang around
@@ -206,6 +209,8 @@ module.exports = (env) => {
                     },
                 ],
             }),
+            */
+            /*
             new WebpackPwaManifest({
                 name: 'gidd-dashboard',
                 short_name: 'GIDD',
@@ -224,6 +229,7 @@ module.exports = (env) => {
                     },
                 ],
             }),
+            */
             new CompressionPlugin(),
             new ResourceHintWebpackPlugin(),
             new webpack.HashedModuleIdsPlugin(),
