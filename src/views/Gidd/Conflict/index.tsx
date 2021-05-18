@@ -50,6 +50,7 @@ import {
     valueFormatter,
     regions,
     regionMap,
+    removeZero,
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
@@ -191,7 +192,11 @@ function Conflict(props: Props) {
                 || regionCountries.indexOf(d.iso3) !== -1
             )
 
-        ));
+        )).map((d) => ({
+            ...d,
+            new_displacements: removeZero(d.new_displacements),
+            stock_displacement: removeZero(d.stock_displacement),
+        }));
         const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
         const dataTotalByYear = mapToList(dataByYear, (d, k) => (
             ({
@@ -291,12 +296,25 @@ function Conflict(props: Props) {
         [countriesList],
     );
 
+    const columnsForDownload = useMemo(
+        () => ([
+            createTextColumn<ConflictData, string>(
+                'iso3',
+                'ISO3',
+                (item) => item.iso3,
+                { sortable: true },
+            ),
+            ...columns,
+        ]),
+        [columns],
+    );
+
     const getCsvValue = useCallback(
         () => convertTableData(
             filteredData,
-            columns,
+            columnsForDownload,
         ),
-        [filteredData, columns],
+        [filteredData, columnsForDownload],
     );
 
     const handleDownload = useDownloading(

@@ -2,9 +2,6 @@
     display: flex;
     margin: auto;
     background-color: var(--color-foreground);
-    width: 80vw;
-    height: 100vh;
-    overflow-y: auto;
 
     --color-conflict: #ea6323;
     --color-disaster: #0774e1;

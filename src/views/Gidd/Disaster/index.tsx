@@ -55,6 +55,7 @@ import {
     regions,
     regionMap,
     calcPieSizes,
+    removeZero,
 } from '#utils/common';
 
 import { PageType } from '..';
@@ -136,6 +137,16 @@ interface ItemWithGroup {
     parent: string;
 }
 
+function subTypeTransformer(subType = '') {
+    if (subType.toLowerCase() === 'wet mass movement') {
+        return 'Wet Mass Movement';
+    }
+    if (subType === 'Volcanic eruption' || subType === 'Volcanic activity') {
+        return 'Volcanic eruption';
+    }
+    return subType;
+}
+
 const inputKeySelector = (d: Item) => d.key;
 const inputValueSelector = (d: Item) => d.value;
 
@@ -207,7 +218,7 @@ function Disaster(props: Props) {
             response.results.filter((d) => isDefined(d.hazard_type),
                 (d: DisasterData) => d.hazard_type),
         ).map((d) => ({
-            key: d.hazard_type,
+            key: subTypeTransformer(d.hazard_type),
             value: d.hazard_type,
             parent: d.hazard_category,
         }));
@@ -245,12 +256,17 @@ function Disaster(props: Props) {
                 || finalFormValue.countries.indexOf(d.iso3) !== -1
             ) && (
                 finalFormValue.disasterType.length === 0
-                || finalFormValue.disasterType.indexOf(d.hazard_sub_type) !== -1
+                || finalFormValue.disasterType.indexOf(subTypeTransformer(d.hazard_type)) !== -1
             ) && (
                 finalFormValue.regions.length === 0
                 || regionCountries.indexOf(d.iso3) !== -1
             )
-        )).map((d) => ({ ...d, key: randomString() }));
+        )).map((d) => ({
+            ...d,
+            key: randomString(),
+            hazard_type: subTypeTransformer(d.hazard_type),
+            new_displacements: removeZero(d.new_displacements),
+        }));
         const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
         const dataTotalByYear = mapToList(dataByYear, (d, k) => (
             ({
@@ -371,12 +387,25 @@ function Disaster(props: Props) {
         [countriesList],
     );
 
+    const columnsForDownload = useMemo(
+        () => ([
+            createTextColumn<DisasterData, string>(
+                'iso3',
+                'ISO3',
+                (item) => item.iso3,
+                { sortable: true },
+            ),
+            ...columns,
+        ]),
+        [columns],
+    );
+
     const getCsvValue = useCallback(
         () => convertTableData(
             filteredData,
-            columns,
+            columnsForDownload,
         ),
-        [filteredData, columns],
+        [filteredData, columnsForDownload],
     );
 
     const handleDownload = useDownloading(

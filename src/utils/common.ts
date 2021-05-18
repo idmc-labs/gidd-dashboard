@@ -49,7 +49,7 @@ export interface MultiResponse<T> {
 
 export function add(args: (number | undefined)[]) {
     const newArgs = args.filter(isDefined);
-    return sum(newArgs);
+    return sum(newArgs) === 0 ? undefined : sum(newArgs);
 }
 
 export const regions = [
@@ -69,11 +69,6 @@ export const regions = [
         countries: ['SHN', 'MYT', 'REU', 'BEN', 'TZA', 'AB9', 'AGO', 'BWA', 'TCD', 'GNQ', 'CIV', 'GMB', 'GIN', 'MWI', 'ATF', 'IOT', 'BFA', 'ERI', 'ETH', 'COM', 'COG', 'CPV', 'CAF', 'GNB', 'KEN', 'GHA', 'LBR', 'MLI', 'MDG', 'MOZ', 'LSO', 'NAM', 'MRT', 'MUS', 'SEN', 'RWA', 'SYC', 'NGA', 'SLE', 'ZAF', 'TGO', 'SOM', 'UGA', 'SWZ', 'CMR', 'COD', 'GAB', 'BDI', 'NER', 'SDN', 'STP', 'ZWE', 'SSD', 'ZMB'],
     },
     {
-        key: 'Antarctica',
-        value: 'Antarctica',
-        countries: ['ATA'],
-    },
-    {
         key: 'South Asia',
         value: 'South Asia',
         countries: ['AFG', 'BGD', 'BTN', 'IND', 'MDV', 'NPL', 'PAK', 'LKA'],
@@ -88,15 +83,17 @@ export const regions = [
         value: 'Middle East and North Africa',
         countries: ['BHR', 'ESH', 'IRQ', 'ISR', 'JOR', 'KWT', 'LBN', 'MLT', 'OMN', 'PSE', 'QAT', 'SAU', 'IRN', 'DJI', 'MAR', 'SYR', 'ARE', 'YEM', 'TUN', 'LBY', 'EGY', 'DZA'],
     },
+    /*
     {
         key: 'North America',
         value: 'North America',
         countries: ['BMU', 'CAN', 'USA'],
     },
+    */
     {
-        key: 'Latin America and the Caribbean',
-        value: 'Latin America and the Caribbean',
-        countries: ['CHL', 'GUF', 'MTQ', 'GLP', 'SPM', 'SGS', 'BES', 'MSR', 'BLM', 'FLK', 'BVT', 'ABW', 'ATG', 'ARG', 'BHS', 'BRB', 'BLZ', 'BRA', 'CYM', 'COL', 'CRI', 'CUB', 'CUW', 'DMA', 'BOL', 'DOM', 'ECU', 'SLV', 'GRD', 'GTM', 'GUY', 'HTI', 'HND', 'JAM', 'MEX', 'NIC', 'PAN', 'PRY', 'PER', 'PRI', 'KNA', 'LCA', 'VCT', 'MAF', 'TTO', 'TCA', 'SXM', 'URY', 'VIR', 'AIA', 'VGB', 'VEN', 'SUR'],
+        key: 'Americas',
+        value: 'Americas',
+        countries: ['BMU', 'CAN', 'USA', 'CHL', 'GUF', 'MTQ', 'GLP', 'SPM', 'SGS', 'BES', 'MSR', 'BLM', 'FLK', 'BVT', 'ABW', 'ATG', 'ARG', 'BHS', 'BRB', 'BLZ', 'BRA', 'CYM', 'COL', 'CRI', 'CUB', 'CUW', 'DMA', 'BOL', 'DOM', 'ECU', 'SLV', 'GRD', 'GTM', 'GUY', 'HTI', 'HND', 'JAM', 'MEX', 'NIC', 'PAN', 'PRY', 'PER', 'PRI', 'KNA', 'LCA', 'VCT', 'MAF', 'TTO', 'TCA', 'SXM', 'URY', 'VIR', 'AIA', 'VGB', 'VEN', 'SUR'],
     },
 ];
 
@@ -121,4 +118,11 @@ export function calcPieSizes(data: { label: string; total: number }[], noOfPies 
             total: otherData.reduce((acc, val) => (acc + val.total), 0),
         },
     ]);
+}
+
+export function removeZero(data?: number) {
+    if (data === 0) {
+        return undefined;
+    }
+    return data;
 }

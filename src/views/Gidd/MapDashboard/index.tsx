@@ -35,6 +35,7 @@ import { useRequest } from '#utils/request';
 import {
     MultiResponse,
     add,
+    removeZero,
 } from '#utils/common';
 import {
     createTextColumn,
@@ -46,8 +47,8 @@ import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 
-const newDisplacementTooltip = 'New displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense,the number of new displacements does not equal to the number of people displaced during the year.';
-const idpTooltip = 'Total number of IDPs corresponds to the totalnumber of people living in internal displacement as of31 December 2020.';
+const newDisplacementTooltip = 'New displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense, the number of new displacements does not equal to the number of people displaced during the year.';
+const idpTooltip = 'Total number of IDPs corresponds to the total number of people living in internal displacement as of 31 December 2020.';
 
 interface DisplacementData {
     iso3: string;
@@ -258,7 +259,13 @@ function MapDashboard(props: Props) {
                 sortedData: [],
             };
         }
-        const finalSortedData = [...response?.results];
+        const finalSortedData = [...response.results].map((d) => ({
+            ...d,
+            conflict_stock_displacement: removeZero(d.conflict_stock_displacement),
+            conflict_new_displacements: removeZero(d.conflict_new_displacements),
+            disaster_stock_displacement: removeZero(d.disaster_stock_displacement),
+            disaster_new_displacements: removeZero(d.disaster_new_displacements),
+        }));
         if (sorting) {
             finalSortedData.sort((a, b) => {
                 if (sorting.name === 'geo_name') {
@@ -358,7 +365,6 @@ function MapDashboard(props: Props) {
                 {
                     sortable: true,
                     variant: 'disaster',
-                    placeholder: '0',
                 },
             ),
             createNumberColumn<DisplacementData, string>(
@@ -375,6 +381,19 @@ function MapDashboard(props: Props) {
             ),
         ]),
         [],
+    );
+
+    const columnsForDownload = useMemo(
+        () => ([
+            createTextColumn<DisplacementData, string>(
+                'iso3',
+                'ISO3',
+                (item) => item.iso3,
+                { sortable: true },
+            ),
+            ...columns,
+        ]),
+        [columns],
     );
 
     const handleConflictClick = useCallback(() => {
@@ -434,9 +453,9 @@ function MapDashboard(props: Props) {
     const getCsvValue = useCallback(
         () => convertTableData(
             sortedData,
-            columns,
+            columnsForDownload,
         ),
-        [sortedData, columns],
+        [sortedData, columnsForDownload],
     );
 
     const handleDownload = useDownloading(
