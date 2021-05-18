@@ -341,7 +341,7 @@ function Disaster(props: Props) {
         () => ([
             createTextColumn<DisasterData, string>(
                 'geo_name',
-                'Country',
+                'Country / Territory',
                 (item) => item.geo_name ?? countriesList.find((c) => c.key === item.iso3)?.value,
                 { sortable: true },
             ),
@@ -368,7 +368,7 @@ function Disaster(props: Props) {
             ),
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
-                'Disaster New Displacement',
+                'Disaster New Displacements',
                 (item) => round(item.new_displacements),
                 { sortable: true },
             ),
@@ -410,7 +410,7 @@ function Disaster(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'Disaster Data',
+        'IDMC_GIDD_disasters_internal_displacement_data_2020',
         getCsvValue,
     );
 
@@ -422,6 +422,7 @@ function Disaster(props: Props) {
                 <Button
                     className={styles.button}
                     name="back"
+                    variant="primary"
                     onClick={handleBackButton}
                 >
                     Go back
@@ -443,7 +444,7 @@ function Disaster(props: Props) {
                     <MultiSelectInput<string, 'countries', Item, any>
                         className={styles.filter}
                         keySelector={inputKeySelector}
-                        label="Countries"
+                        label="Countries and territories"
                         labelSelector={inputValueSelector}
                         name="countries"
                         onChange={onValueChange}
@@ -477,7 +478,7 @@ function Disaster(props: Props) {
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New Displacement from
+                        {`New Displacements from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -502,7 +503,7 @@ function Disaster(props: Props) {
                                 />
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="Disaster events detected"
+                                    label="Disaster events reported"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={filteredData?.length}
                                     variant="disaster"
@@ -564,16 +565,6 @@ function Disaster(props: Props) {
                         </Pie>
                     </PieChart>
                 </div>
-                <div className={styles.tableContainer}>
-                    <SortContext.Provider value={sortState}>
-                        <Table
-                            data={paginatedData}
-                            className={styles.table}
-                            keySelector={disasterItemKeySelector}
-                            columns={columns}
-                        />
-                    </SortContext.Provider>
-                </div>
                 <div className={styles.footerContainer}>
                     <Button
                         name="download"
@@ -593,6 +584,16 @@ function Disaster(props: Props) {
                         onActivePageChange={setActivePage}
                         onItemsPerPageChange={setPageSize}
                     />
+                </div>
+                <div className={styles.tableContainer}>
+                    <SortContext.Provider value={sortState}>
+                        <Table
+                            data={paginatedData}
+                            className={styles.table}
+                            keySelector={disasterItemKeySelector}
+                            columns={columns}
+                        />
+                    </SortContext.Provider>
                 </div>
             </div>
         </div>

@@ -87,11 +87,11 @@ interface HoveredRegion {
 
 const layerPaint: mapboxgl.FillPaint = {
     'fill-color': '#e6e6e6',
-    'fill-opacity': 0.4,
+    'fill-opacity': 0.3,
 };
 const layerPaintBlue: mapboxgl.FillPaint = {
     'fill-color': '#4c4c4c',
-    'fill-opacity': 0.7,
+    'fill-opacity': 0.6,
 };
 const outlinePaintLight: mapboxgl.LinePaint = {
     'line-color': '#f0f0f0',
@@ -126,7 +126,8 @@ function Tooltip({
         <div>
             <h3>{info?.geo_name}</h3>
             <NumberBlock
-                label="Conflict IDP"
+                label="Total number of IDPs"
+                subLabel="as a result of conflict and violence as of the end of the year"
                 value={info?.conflict_stock_displacement}
                 size="small"
                 hideIfNoValue
@@ -134,7 +135,7 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
-                label="Conflict New Displacements"
+                label="Conflict and violence new displacements"
                 value={info?.conflict_new_displacements}
                 size="small"
                 variant="conflict"
@@ -142,7 +143,8 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
-                label="Disaster IDP"
+                label="Total number of IDPs"
+                subLabel="as a result of disasters as of the end of the year"
                 value={info?.disaster_stock_displacement}
                 size="small"
                 variant="disaster"
@@ -150,7 +152,7 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
-                label="Disaster New Displacements"
+                label="Disaster new displacements"
                 value={info?.disaster_new_displacements}
                 variant="disaster"
                 size="small"
@@ -313,7 +315,7 @@ function MapDashboard(props: Props) {
         () => ([
             createTextColumn<DisplacementData, string>(
                 'geo_name',
-                'Country',
+                'Country / Territory',
                 (item) => item.geo_name,
                 { sortable: true },
             ),
@@ -337,7 +339,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'conflict_stock_displacement',
-                'Conflict Stock Displacement',
+                'Conflict Total no of IDPs',
                 (item) => item.conflict_stock_displacement,
                 {
                     sortable: true,
@@ -355,7 +357,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_stock_displacement',
-                'Disaster Stock Displacement',
+                'Disaster Total no of IDPs',
                 (item) => item.disaster_stock_displacement,
                 {
                     sortable: true,
@@ -370,7 +372,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalStock',
-                'Total Stock Displacement',
+                'Total no of IDPS',
                 (item) => add([item.disaster_stock_displacement, item.conflict_stock_displacement]),
                 { sortable: true },
             ),
@@ -454,7 +456,7 @@ function MapDashboard(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'GIDD 2020',
+        'IDMC_GIDD_internal_displacement_data_2020',
         getCsvValue,
     );
 
@@ -557,7 +559,7 @@ function MapDashboard(props: Props) {
                 <div className={styles.rightContainer}>
                     <div className={_cs(styles.infoBox, styles.topBox)}>
                         <h2 className={styles.heading}>
-                            New Displacement 2020
+                            New Displacements in 2020
                             <AiOutlineInfoCircle
                                 className={styles.tooltip}
                                 title={newDisplacementTooltip}
@@ -594,6 +596,7 @@ function MapDashboard(props: Props) {
                                 title={idpTooltip}
                             />
                         </h2>
+                        <span>as of the end of 2020</span>
                         <NumberBlock
                             label="Total"
                             value={totalIdpCount}

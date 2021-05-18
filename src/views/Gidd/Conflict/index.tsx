@@ -262,7 +262,7 @@ function Conflict(props: Props) {
         () => ([
             createTextColumn<ConflictData, string>(
                 'geo_name',
-                'Country',
+                'Country / Territory',
                 (item) => (
                     item.geo_name ?? countriesList?.find((c) => c.key === item.iso3)?.value
                 ),
@@ -279,7 +279,7 @@ function Conflict(props: Props) {
             ),
             createNumberColumn<ConflictData, string>(
                 'stock_displacement',
-                'Conflict Stock Displacement',
+                'Total no of IDPs',
                 (item) => round(item.stock_displacement),
                 {
                     sortable: true,
@@ -287,7 +287,7 @@ function Conflict(props: Props) {
             ),
             createNumberColumn<ConflictData, string>(
                 'new_displacements',
-                'Conflict New Displacement',
+                'Conflict New Displacements',
                 (item) => round(item.new_displacements),
                 {
                     sortable: true,
@@ -319,7 +319,7 @@ function Conflict(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'Conflict Data',
+        'IDMC_GIDD_conflict_internal_displacement_data_2020',
         getCsvValue,
     );
 
@@ -331,6 +331,7 @@ function Conflict(props: Props) {
                 <Button
                     className={styles.button}
                     name="back"
+                    variant="primary"
                     onClick={handleBackButton}
                 >
                     Go back
@@ -352,7 +353,7 @@ function Conflict(props: Props) {
                     <MultiSelectInput<string, 'countries', Item, any>
                         name="countries"
                         className={styles.filter}
-                        label="Countries"
+                        label="Countries and territories"
                         options={countriesList}
                         keySelector={inputKeySelector}
                         labelSelector={inputValueSelector}
@@ -372,7 +373,7 @@ function Conflict(props: Props) {
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New displacements and total no of IDPs from
+                        {`New displacements and total number of IDPs from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -458,7 +459,7 @@ function Conflict(props: Props) {
                             <Legend />
                             <Line
                                 dataKey="totalStock"
-                                name="Conflict Stock"
+                                name="Conflict Total No of IDPs"
                                 key="totalStock"
                                 stroke="var(--color-conflict)"
                                 strokeWidth={2}
@@ -467,16 +468,6 @@ function Conflict(props: Props) {
                             />
                         </LineChart>
                     </div>
-                </div>
-                <div className={styles.tableContainer}>
-                    <SortContext.Provider value={sortState}>
-                        <Table
-                            data={paginatedData}
-                            className={styles.table}
-                            keySelector={conflictItemKeySelector}
-                            columns={columns}
-                        />
-                    </SortContext.Provider>
                 </div>
                 <div className={styles.footerContainer}>
                     <Button
@@ -497,6 +488,16 @@ function Conflict(props: Props) {
                         onActivePageChange={setActivePage}
                         onItemsPerPageChange={setPageSize}
                     />
+                </div>
+                <div className={styles.tableContainer}>
+                    <SortContext.Provider value={sortState}>
+                        <Table
+                            data={paginatedData}
+                            className={styles.table}
+                            keySelector={conflictItemKeySelector}
+                            columns={columns}
+                        />
+                    </SortContext.Provider>
                 </div>
             </div>
         </div>

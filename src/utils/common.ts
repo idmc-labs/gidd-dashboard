@@ -132,8 +132,11 @@ export function round(data?: number) {
     if (isNotDefined(data) || data === 0) {
         return undefined;
     }
-    if (data < 1000) {
+    if (data < 100) {
         return data;
+    }
+    if (data < 1000) {
+        return Math.round(data / 100) * 100;
     }
     return Math.round(data / 1000) * 1000;
 }
