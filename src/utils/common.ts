@@ -1,5 +1,6 @@
 import {
     isValidUrl as isValidRemoteUrl,
+    isNotDefined,
     isDefined,
     sum,
     listToMap,
@@ -125,4 +126,14 @@ export function removeZero(data?: number) {
         return undefined;
     }
     return data;
+}
+
+export function round(data?: number) {
+    if (isNotDefined(data) || data === 0) {
+        return undefined;
+    }
+    if (data < 1000) {
+        return data;
+    }
+    return Math.round(data / 1000) * 1000;
 }

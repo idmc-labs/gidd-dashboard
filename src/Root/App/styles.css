@@ -80,6 +80,8 @@ body {
 
     h1, h2, h3, h4, h5, h6, p {
         margin: 0;
+        text-transform: unset!important;
+        font-weight: var(--font-weight-bold)!important;
     }
 
     a {

@@ -9,6 +9,7 @@ import styles from './styles.css';
 
 function NumberBlock({
     label,
+    secondarySubLabel,
     subLabel,
     value,
     className,
@@ -18,6 +19,7 @@ function NumberBlock({
     abbreviate = true,
 }: {
     label: string;
+    secondarySubLabel?: string;
     subLabel?: string;
     value: number | null | undefined;
     className?: string;
@@ -47,6 +49,11 @@ function NumberBlock({
             <div className={styles.label}>
                 { label }
             </div>
+            {secondarySubLabel && (
+                <div className={styles.label}>
+                    { secondarySubLabel }
+                </div>
+            )}
             {subLabel && (
                 <div className={styles.subLabel}>
                     { subLabel }

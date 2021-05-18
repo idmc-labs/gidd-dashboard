@@ -62,9 +62,18 @@
                 flex-wrap: wrap;
                 padding: calc(var(--spacing-large) - var(--spacing-small));
 
-                .number-block {
-                    margin: var(--spacing-small);
-                    padding: var(--spacing-large);
+                .left-container {
+                    display: flex;
+                    flex-direction: column;
+
+                    .left-bottom-container {
+                        display: flex;
+                    }
+
+                    .number-block {
+                        margin: var(--spacing-small);
+                        padding: var(--spacing-large);
+                    }
                 }
             }
         }

@@ -56,6 +56,7 @@ import {
     regionMap,
     calcPieSizes,
     removeZero,
+    round,
 } from '#utils/common';
 
 import { PageType } from '..';
@@ -368,7 +369,7 @@ function Disaster(props: Props) {
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
                 'Disaster New Displacement',
-                (item) => item.new_displacements,
+                (item) => round(item.new_displacements),
                 { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
@@ -481,25 +482,38 @@ function Disaster(props: Props) {
                         `}
                     </h2>
                     <div className={styles.numbersContainer}>
-                        <NumberBlock
-                            label="Countries"
-                            className={styles.numberBlock}
-                            value={noOfCountries}
-                            variant="normal"
-                            size="large"
-                        />
-                        <NumberBlock
-                            className={styles.numberBlock}
-                            label="Disasters"
-                            subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
-                            value={noTotal}
-                            variant="disaster"
-                            size="medium"
-                        />
+                        <div className={styles.leftContainer}>
+                            <NumberBlock
+                                label="Countries and territories"
+                                className={styles.numberBlock}
+                                value={noOfCountries}
+                                variant="normal"
+                                size="large"
+                            />
+                            <div className={styles.leftBottomContainer}>
+                                <NumberBlock
+                                    className={styles.numberBlock}
+                                    label="New displacements"
+                                    secondarySubLabel="Disasters"
+                                    subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
+                                    value={noTotal}
+                                    variant="disaster"
+                                    size="medium"
+                                />
+                                <NumberBlock
+                                    className={styles.numberBlock}
+                                    label="Disaster events detected"
+                                    subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
+                                    value={filteredData?.length}
+                                    variant="disaster"
+                                    size="medium"
+                                />
+                            </div>
+                        </div>
                     </div>
                     <BarChart
-                        width={500}
-                        height={200}
+                        width={360}
+                        height={240}
                         data={filteredAggregatedData}
                     >
                         <XAxis
@@ -527,8 +541,8 @@ function Disaster(props: Props) {
                         />
                     </BarChart>
                     <PieChart
-                        width={500}
-                        height={200}
+                        width={360}
+                        height={240}
                     >
                         <Tooltip
                             formatter={valueFormatter}

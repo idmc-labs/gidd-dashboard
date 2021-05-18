@@ -87,16 +87,11 @@ interface HoveredRegion {
 
 const layerPaint: mapboxgl.FillPaint = {
     'fill-color': '#e6e6e6',
-    'fill-opacity': 1,
+    'fill-opacity': 0.4,
 };
 const layerPaintBlue: mapboxgl.FillPaint = {
-    'fill-color': [
-        'case',
-        ['==', ['feature-state', 'hovered'], 1],
-        '#37558f',
-        '#636362',
-    ],
-    'fill-opacity': 1,
+    'fill-color': '#4c4c4c',
+    'fill-opacity': 0.7,
 };
 const outlinePaintLight: mapboxgl.LinePaint = {
     'line-color': '#f0f0f0',

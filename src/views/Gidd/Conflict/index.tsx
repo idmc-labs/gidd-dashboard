@@ -51,6 +51,7 @@ import {
     regions,
     regionMap,
     removeZero,
+    round,
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
@@ -279,7 +280,7 @@ function Conflict(props: Props) {
             createNumberColumn<ConflictData, string>(
                 'stock_displacement',
                 'Conflict Stock Displacement',
-                (item) => item.stock_displacement,
+                (item) => round(item.stock_displacement),
                 {
                     sortable: true,
                 },
@@ -287,7 +288,7 @@ function Conflict(props: Props) {
             createNumberColumn<ConflictData, string>(
                 'new_displacements',
                 'Conflict New Displacement',
-                (item) => item.new_displacements,
+                (item) => round(item.new_displacements),
                 {
                     sortable: true,
                 },
@@ -371,37 +372,43 @@ function Conflict(props: Props) {
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New Displacement and stock from
+                        {`New displacements and total no of IDPs from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
                     <div className={styles.numbersContainer}>
-                        <NumberBlock
-                            label="Countries"
-                            className={styles.numberBlock}
-                            value={noOfCountries}
-                            variant="normal"
-                            size="large"
-                        />
-                        <NumberBlock
-                            className={styles.numberBlock}
-                            label="Conflict and Violence"
-                            subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
-                            value={noTotal}
-                            variant="conflict"
-                            size="medium"
-                        />
-                        <NumberBlock
-                            className={styles.numberBlock}
-                            label="Conflict and Violence"
-                            value={noAsOfEnd}
-                            subLabel={`As of end of ${finalFormValue.years[1]}`}
-                            variant="conflict"
-                            size="medium"
-                        />
+                        <div className={styles.leftContainer}>
+                            <NumberBlock
+                                label="Countries and territories"
+                                className={styles.numberBlock}
+                                value={noOfCountries}
+                                variant="normal"
+                                size="large"
+                            />
+                            <div className={styles.leftBottomContainer}>
+                                <NumberBlock
+                                    className={styles.numberBlock}
+                                    label="New displacements"
+                                    secondarySubLabel="Conflict and Violence"
+                                    subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
+                                    value={noTotal}
+                                    variant="conflict"
+                                    size="medium"
+                                />
+                                <NumberBlock
+                                    className={styles.numberBlock}
+                                    label="Total no of IDPs"
+                                    secondarySubLabel="Conflict and Violence"
+                                    value={noAsOfEnd}
+                                    subLabel={`As of end of ${finalFormValue.years[1]}`}
+                                    variant="conflict"
+                                    size="medium"
+                                />
+                            </div>
+                        </div>
                         <BarChart
-                            width={400}
-                            height={200}
+                            width={360}
+                            height={240}
                             data={filteredAggregatedData}
                         >
                             <XAxis
@@ -429,8 +436,8 @@ function Conflict(props: Props) {
                             />
                         </BarChart>
                         <LineChart
-                            width={400}
-                            height={200}
+                            width={360}
+                            height={240}
                             data={filteredAggregatedData}
                         >
                             <XAxis
