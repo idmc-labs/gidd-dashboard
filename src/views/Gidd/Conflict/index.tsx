@@ -55,7 +55,6 @@ import {
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
-import readMe from '#resources/ReadMeFile_GIDD.docx';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
@@ -327,7 +326,7 @@ function Conflict(props: Props) {
 
     const handleDownloadClick = useCallback(() => {
         handleDownload();
-        const url = readMe;
+        const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
         const a = document.createElement('a');
         a.href = url;
         a.download = 'ReadMeFile_GIDD.docx';

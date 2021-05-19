@@ -15,6 +15,7 @@ import {
     AiOutlineInfoCircle,
 } from 'react-icons/ai';
 import {
+    RawButton,
     Button,
     Table,
     Pager,
@@ -44,7 +45,6 @@ import {
 } from '#components/tableHelpers';
 
 import allAreas from '#resources/map.json';
-import readMe from '#resources/ReadMeFile_GIDD.docx';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
@@ -472,17 +472,41 @@ function MapDashboard(props: Props) {
         getCsvValue,
     );
 
-    const handleFileDownload = useCallback(() => {
-        const url = readMe;
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ReadMeFile_GIDD.docx';
-        a.click();
+    const handleDisasterFileDownload = useCallback(() => {
+        const url2 = 'https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx';
+        const a2 = document.createElement('a');
+        a2.href = url2;
+        a2.download = 'IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx';
+        a2.click();
+
+        setTimeout(() => {
+            const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ReadMeFile_GIDD.docx';
+            a.click();
+        }, 1000);
+    }, []);
+
+    const handleConflictFileDownload = useCallback(() => {
+        const url2 = 'https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx';
+        const a2 = document.createElement('a');
+        a2.href = url2;
+        a2.download = 'IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx';
+        a2.click();
+
+        setTimeout(() => {
+            const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ReadMeFile_GIDD.docx';
+            a.click();
+        }, 1000);
     }, []);
 
     const handleDownloadClick = useCallback(() => {
         handleDownload();
-        const url = readMe;
+        const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
         const a = document.createElement('a');
         a.href = url;
         a.download = 'ReadMeFile_GIDD.docx';
@@ -675,28 +699,27 @@ function MapDashboard(props: Props) {
                 <h3>
                     Download IDMC Dataset
                 </h3>
-                <a
-                    href="https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx"
+                <RawButton
+                    name="conflictDownload"
                     className={styles.downloadLink}
-                    download
-                    onClick={handleFileDownload}
+                    onClick={handleConflictFileDownload}
                 >
                     <AiOutlineFileExcel className={styles.icon} />
                     <div className={styles.text}>
                         Conflict/violence - disasters 2008-2020 per year
                     </div>
-                </a>
-                <a
-                    href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx"
+                </RawButton>
+                <RawButton
+                    name="disasterDownload"
                     className={styles.downloadLink}
-                    onClick={handleFileDownload}
+                    onClick={handleDisasterFileDownload}
                     download
                 >
                     <AiOutlineFileExcel className={styles.icon} />
                     <div className={styles.text}>
                         Disaster events 2008-2020 (new displacement) per hazard type
                     </div>
-                </a>
+                </RawButton>
             </div>
             <div className={styles.bottomContent}>
                 <div className={styles.pagerContainer}>

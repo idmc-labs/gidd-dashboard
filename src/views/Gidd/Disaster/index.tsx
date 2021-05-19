@@ -58,7 +58,6 @@ import {
     removeZero,
     round,
 } from '#utils/common';
-import readMe from '#resources/ReadMeFile_GIDD.docx';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
@@ -424,7 +423,7 @@ function Disaster(props: Props) {
 
     const handleDownloadClick = useCallback(() => {
         handleDownload();
-        const url = readMe;
+        const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
         const a = document.createElement('a');
         a.href = url;
         a.download = 'ReadMeFile_GIDD.docx';
