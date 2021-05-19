@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
     _cs,
     isNotDefined,
 } from '@togglecorp/fujs';
-import { Numeral } from '@togglecorp/toggle-ui';
+import {
+    Numeral,
+    useCounter,
+} from '@togglecorp/toggle-ui';
 
 import styles from './styles.css';
 
@@ -28,9 +31,11 @@ function NumberBlock({
     hideIfNoValue?: boolean;
     abbreviate?: boolean;
 }) {
+    const counterValue = useCounter(value, 600, 'exp');
     if (isNotDefined(value) && hideIfNoValue) {
         return null;
     }
+
     return (
         <div
             className={_cs(
@@ -42,7 +47,7 @@ function NumberBlock({
         >
             <Numeral
                 className={styles.value}
-                value={value}
+                value={counterValue}
                 placeholder="N/a"
                 abbreviate={abbreviate}
             />
@@ -63,4 +68,4 @@ function NumberBlock({
     );
 }
 
-export default NumberBlock;
+export default memo(NumberBlock);
