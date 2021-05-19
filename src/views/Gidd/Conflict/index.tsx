@@ -461,7 +461,7 @@ function Conflict(props: Props) {
                                 <Legend />
                                 <Line
                                     dataKey="totalStock"
-                                    name="Conflict Total No of IDPs"
+                                    name="Conflict total number of IDPs"
                                     key="totalStock"
                                     stroke="var(--color-conflict)"
                                     strokeWidth={2}

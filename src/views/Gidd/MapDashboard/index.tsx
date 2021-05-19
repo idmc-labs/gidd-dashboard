@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
+import MdTooltip from '@material-ui/core/Tooltip';
 import {
     _cs,
     listToMap,
@@ -123,9 +124,10 @@ function Tooltip({
     }
 
     return (
-        <div>
+        <div className={styles.mapTooltip}>
             <h3>{info?.geo_name}</h3>
             <NumberBlock
+                className={styles.block}
                 label="Total number of IDPs"
                 subLabel="as a result of conflict and violence as of the end of the year"
                 value={info?.conflict_stock_displacement}
@@ -135,6 +137,7 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
+                className={styles.block}
                 label="Conflict and violence new displacements"
                 value={info?.conflict_new_displacements}
                 size="small"
@@ -143,6 +146,7 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
+                className={styles.block}
                 label="Total number of IDPs"
                 subLabel="as a result of disasters as of the end of the year"
                 value={info?.disaster_stock_displacement}
@@ -152,6 +156,7 @@ function Tooltip({
                 abbreviate={false}
             />
             <NumberBlock
+                className={styles.block}
                 label="Disaster new displacements"
                 value={info?.disaster_new_displacements}
                 variant="disaster"
@@ -561,10 +566,15 @@ function MapDashboard(props: Props) {
                     <div className={_cs(styles.infoBox, styles.topBox)}>
                         <h2 className={styles.heading}>
                             New Displacements in 2020
-                            <AiOutlineInfoCircle
+                            <MdTooltip
                                 className={styles.tooltip}
                                 title={newDisplacementTooltip}
-                            />
+                                placement="bottom"
+                            >
+                                <p className={styles.tooltipContainer}>
+                                    <AiOutlineInfoCircle className={styles.tooltip} />
+                                </p>
+                            </MdTooltip>
                         </h2>
                         <NumberBlock
                             label="Total"
@@ -592,10 +602,17 @@ function MapDashboard(props: Props) {
                     <div className={styles.infoBox}>
                         <h2 className={styles.heading}>
                             Total Number of IDPs
-                            <AiOutlineInfoCircle
+                            <MdTooltip
                                 className={styles.tooltip}
                                 title={idpTooltip}
-                            />
+                                placement="bottom"
+                            >
+                                <p className={styles.tooltipContainer}>
+                                    <AiOutlineInfoCircle
+                                        className={styles.tooltip}
+                                    />
+                                </p>
+                            </MdTooltip>
                         </h2>
                         <span>as of the end of 2020</span>
                         <NumberBlock

@@ -261,7 +261,7 @@ function Disaster(props: Props) {
             ) && (
                 finalFormValue.regions.length === 0
                 || regionCountries.indexOf(d.iso3) !== -1
-            )
+            ) && (isDefined(d.new_displacements) && d.new_displacements !== 0)
         )).map((d) => ({
             ...d,
             key: randomString(),
