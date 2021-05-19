@@ -15,6 +15,7 @@
             flex-grow: 1;
             padding: var(--spacing-small);
             color: var(--color-primary);
+            font-family: 'Lora', sans-serif!important;
         }
 
         .button-container {
@@ -43,7 +44,7 @@
     .top-content {
         display: flex;
         flex-grow: 1;
-        height: 60vh;
+        min-height: 60vh;
 
         .left-container {
             padding: var(--spacing-large);
@@ -116,6 +117,10 @@
         .table {
             padding: var(--spacing-large);
             width: 100%;
+
+            .year {
+                width: 96px;
+            }
         }
 
         .pager-container {

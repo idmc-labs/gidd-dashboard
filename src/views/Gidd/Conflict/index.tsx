@@ -275,6 +275,7 @@ function Conflict(props: Props) {
                 {
                     sortable: true,
                     separator: '',
+                    columnClassName: styles.year,
                 },
             ),
             createNumberColumn<ConflictData, string>(
@@ -407,66 +408,68 @@ function Conflict(props: Props) {
                                 />
                             </div>
                         </div>
-                        <BarChart
-                            width={360}
-                            height={240}
-                            data={filteredAggregatedData}
-                        >
-                            <XAxis
-                                dataKey="year"
-                                axisLine={false}
-                            />
-                            <CartesianGrid
-                                vertical={false}
-                                strokeDasharray="3 3"
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickFormatter={valueFormatter}
-                            />
-                            <Tooltip
-                                formatter={valueFormatter}
-                            />
-                            <Legend />
-                            <Bar
-                                dataKey="total"
-                                fill="var(--color-conflict)"
-                                name="Conflict new displacements"
-                                shape={<CustomBar />}
-                                maxBarSize={16}
-                            />
-                        </BarChart>
-                        <LineChart
-                            width={360}
-                            height={240}
-                            data={filteredAggregatedData}
-                        >
-                            <XAxis
-                                dataKey="year"
-                                axisLine={false}
-                            />
-                            <CartesianGrid
-                                vertical={false}
-                                strokeDasharray="3 3"
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickFormatter={valueFormatter}
-                            />
-                            <Tooltip
-                                formatter={valueFormatter}
-                            />
-                            <Legend />
-                            <Line
-                                dataKey="totalStock"
-                                name="Conflict Total No of IDPs"
-                                key="totalStock"
-                                stroke="var(--color-conflict)"
-                                strokeWidth={2}
-                                connectNulls
-                                dot
-                            />
-                        </LineChart>
+                        <div className={styles.chartsContainer}>
+                            <BarChart
+                                width={360}
+                                height={240}
+                                data={filteredAggregatedData}
+                            >
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                />
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickFormatter={valueFormatter}
+                                />
+                                <Tooltip
+                                    formatter={valueFormatter}
+                                />
+                                <Legend />
+                                <Bar
+                                    dataKey="total"
+                                    fill="var(--color-conflict)"
+                                    name="Conflict new displacements"
+                                    shape={<CustomBar />}
+                                    maxBarSize={16}
+                                />
+                            </BarChart>
+                            <LineChart
+                                width={360}
+                                height={240}
+                                data={filteredAggregatedData}
+                            >
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                />
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickFormatter={valueFormatter}
+                                />
+                                <Tooltip
+                                    formatter={valueFormatter}
+                                />
+                                <Legend />
+                                <Line
+                                    dataKey="totalStock"
+                                    name="Conflict Total No of IDPs"
+                                    key="totalStock"
+                                    stroke="var(--color-conflict)"
+                                    strokeWidth={2}
+                                    connectNulls
+                                    dot
+                                />
+                            </LineChart>
+                        </div>
                     </div>
                 </div>
                 <div className={styles.footerContainer}>

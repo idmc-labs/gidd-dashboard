@@ -326,6 +326,7 @@ function MapDashboard(props: Props) {
                 {
                     sortable: true,
                     separator: '',
+                    columnClassName: styles.year,
                 },
             ),
             createNumberColumn<DisplacementData, string>(
@@ -627,7 +628,7 @@ function MapDashboard(props: Props) {
                     Download IDMC Dataset
                 </h3>
                 <a
-                    href="https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=idmc_disaster_all_dataset.xlsx"
+                    href="https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx"
                     className={styles.downloadLink}
                     download
                 >
@@ -635,7 +636,7 @@ function MapDashboard(props: Props) {
                     Conflict/violence - disasters 2008-2020 per year
                 </a>
                 <a
-                    href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=idmc_disaster_all_dataset.xlsx"
+                    href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx"
                     className={styles.downloadLink}
                     download
                 >
@@ -644,14 +645,6 @@ function MapDashboard(props: Props) {
                 </a>
             </div>
             <div className={styles.bottomContent}>
-                <SortContext.Provider value={sortState}>
-                    <Table
-                        className={styles.table}
-                        data={paginatedData}
-                        keySelector={displacementItemKeySelector}
-                        columns={columns}
-                    />
-                </SortContext.Provider>
                 <div className={styles.pagerContainer}>
                     <Button
                         name="download"
@@ -672,6 +665,14 @@ function MapDashboard(props: Props) {
                         onItemsPerPageChange={setPageSize}
                     />
                 </div>
+                <SortContext.Provider value={sortState}>
+                    <Table
+                        className={styles.table}
+                        data={paginatedData}
+                        keySelector={displacementItemKeySelector}
+                        columns={columns}
+                    />
+                </SortContext.Provider>
             </div>
         </div>
     );

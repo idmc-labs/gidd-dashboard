@@ -19,6 +19,7 @@
             flex-grow: 1;
             margin: var(--spacing-small);
             color: var(--color-primary);
+            font-family: 'Lora', sans-serif!important;
         }
     }
 
@@ -62,7 +63,6 @@
 
             .numbers-container {
                 display: flex;
-                flex-direction: column;
 
                 .left-container {
                     display: flex;
@@ -70,6 +70,7 @@
 
                     .left-bottom-container {
                         display: flex;
+                        flex-wrap: wrap;
                     }
 
                     .number-block {
@@ -77,6 +78,12 @@
                         padding: var(--spacing-large);
                     }
                 }
+            }
+
+            .charts-container {
+                display: flex;
+                flex-grow: 1;
+                flex-wrap: wrap;
             }
         }
 
@@ -86,6 +93,18 @@
 
             .table {
                 width: 100%;
+
+                .year {
+                    width: 96px;
+                }
+
+                .date {
+                    width: 120px;
+                }
+
+                .event {
+                    width: 320px;
+                }
             }
         }
 

@@ -352,19 +352,26 @@ function Disaster(props: Props) {
                 {
                     sortable: true,
                     separator: '',
+                    columnClassName: styles.year,
                 },
             ),
             createTextColumn<DisasterData, string>(
                 'event_name',
                 'Event Name',
                 (item) => item.event_name ?? item.glide_number,
-                { sortable: true },
+                {
+                    sortable: true,
+                    columnClassName: styles.event,
+                },
             ),
             createDateColumn<DisasterData, string>(
                 'start_date',
                 'Date of event (start)',
                 (item) => item.start_date,
-                { sortable: true },
+                {
+                    sortable: true,
+                    columnClassName: styles.date,
+                },
             ),
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
@@ -511,59 +518,61 @@ function Disaster(props: Props) {
                                 />
                             </div>
                         </div>
-                    </div>
-                    <BarChart
-                        width={360}
-                        height={240}
-                        data={filteredAggregatedData}
-                    >
-                        <XAxis
-                            dataKey="year"
-                            axisLine={false}
-                        />
-                        <CartesianGrid
-                            vertical={false}
-                            strokeDasharray="3 3"
-                        />
-                        <YAxis
-                            axisLine={false}
-                            tickFormatter={valueFormatter}
-                        />
-                        <Tooltip
-                            formatter={valueFormatter}
-                        />
-                        <Legend />
-                        <Bar
-                            dataKey="total"
-                            fill="var(--color-disaster)"
-                            name="Disaster new displacements"
-                            shape={<CustomBar />}
-                            maxBarSize={16}
-                        />
-                    </BarChart>
-                    <PieChart
-                        width={360}
-                        height={240}
-                    >
-                        <Tooltip
-                            formatter={valueFormatter}
-                        />
-                        <Legend />
-                        <Pie
-                            data={filteredPieData}
-                            dataKey="total"
-                            nameKey="label"
-                        >
-                            {filteredPieData.map(({ label }, index) => (
-                                <Cell
-                                    key={label}
-                                    fill={colorScheme[
-                                        index % colorScheme.length
-                                    ]}
+                        <div className={styles.chartsContainer}>
+                            <BarChart
+                                width={360}
+                                height={240}
+                                data={filteredAggregatedData}
+                            >
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
                                 />
-                            ))}
-                        </Pie>
-                    </PieChart>
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickFormatter={valueFormatter}
+                                />
+                                <Tooltip
+                                    formatter={valueFormatter}
+                                />
+                                <Legend />
+                                <Bar
+                                    dataKey="total"
+                                    fill="var(--color-disaster)"
+                                    name="Disaster new displacements"
+                                    shape={<CustomBar />}
+                                    maxBarSize={16}
+                                />
+                            </BarChart>
+                            <PieChart
+                                width={360}
+                                height={240}
+                            >
+                                <Tooltip
+                                    formatter={valueFormatter}
+                                />
+                                <Legend />
+                                <Pie
+                                    data={filteredPieData}
+                                    dataKey="total"
+                                    nameKey="label"
+                                >
+                                    {filteredPieData.map(({ label }, index) => (
+                                        <Cell
+                                            key={label}
+                                            fill={colorScheme[
+                                                index % colorScheme.length
+                                            ]}
+                                        />
+                                    ))}
+                                </Pie>
+                            </PieChart>
+                        </div>
+                    </div>
                 </div>
                 <div className={styles.footerContainer}>
                     <Button

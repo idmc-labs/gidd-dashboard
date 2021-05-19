@@ -19,6 +19,7 @@
             flex-grow: 1;
             margin: var(--spacing-small);
             color: var(--color-primary);
+            font-family: 'Lora', sans-serif!important;
         }
     }
 
@@ -59,7 +60,6 @@
 
             .numbers-container {
                 display: flex;
-                flex-wrap: wrap;
                 padding: calc(var(--spacing-large) - var(--spacing-small));
 
                 .left-container {
@@ -68,12 +68,18 @@
 
                     .left-bottom-container {
                         display: flex;
+                        flex-wrap: wrap;
                     }
 
                     .number-block {
                         margin: var(--spacing-small);
                         padding: var(--spacing-large);
                     }
+                }
+
+                .charts-container {
+                    display: flex;
+                    flex-wrap: wrap;
                 }
             }
         }
@@ -84,6 +90,10 @@
 
             .table {
                 width: 100%;
+
+                .year {
+                    width: 96px;
+                }
             }
         }
 
