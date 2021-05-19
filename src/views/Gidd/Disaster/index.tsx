@@ -58,6 +58,7 @@ import {
     removeZero,
     round,
 } from '#utils/common';
+import readMe from '#resources/ReadMeFile_GIDD.docx';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
@@ -421,6 +422,15 @@ function Disaster(props: Props) {
         getCsvValue,
     );
 
+    const handleDownloadClick = useCallback(() => {
+        handleDownload();
+        const url = readMe;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ReadMeFile_GIDD.docx';
+        a.click();
+    }, [handleDownload]);
+
     return (
         <div className={_cs(className, styles.disaster)}>
             {pending && <PendingMessage className={styles.pending} />}
@@ -579,7 +589,7 @@ function Disaster(props: Props) {
                 <div className={styles.footerContainer}>
                     <Button
                         name="download"
-                        onClick={handleDownload}
+                        onClick={handleDownloadClick}
                         icons={(
                             <IoMdDownload />
                         )}

@@ -44,6 +44,7 @@ import {
 } from '#components/tableHelpers';
 
 import allAreas from '#resources/map.json';
+import readMe from '#resources/ReadMeFile_GIDD.docx';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
@@ -471,6 +472,23 @@ function MapDashboard(props: Props) {
         getCsvValue,
     );
 
+    const handleFileDownload = useCallback(() => {
+        const url = readMe;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ReadMeFile_GIDD.docx';
+        a.click();
+    }, []);
+
+    const handleDownloadClick = useCallback(() => {
+        handleDownload();
+        const url = readMe;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ReadMeFile_GIDD.docx';
+        a.click();
+    }, [handleDownload]);
+
     return (
         <div className={_cs(className, styles.mapDashboard)}>
             {pending && <PendingMessage className={styles.pending} />}
@@ -661,6 +679,7 @@ function MapDashboard(props: Props) {
                     href="https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx"
                     className={styles.downloadLink}
                     download
+                    onClick={handleFileDownload}
                 >
                     <AiOutlineFileExcel className={styles.icon} />
                     <div className={styles.text}>
@@ -670,6 +689,7 @@ function MapDashboard(props: Props) {
                 <a
                     href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx"
                     className={styles.downloadLink}
+                    onClick={handleFileDownload}
                     download
                 >
                     <AiOutlineFileExcel className={styles.icon} />
@@ -682,7 +702,7 @@ function MapDashboard(props: Props) {
                 <div className={styles.pagerContainer}>
                     <Button
                         name="download"
-                        onClick={handleDownload}
+                        onClick={handleDownloadClick}
                         icons={(
                             <IoMdDownload />
                         )}

@@ -153,7 +153,7 @@ module.exports = (env) => {
                     ],
                 },
                 {
-                    test: /\.(png|jpg|gif|svg)$/,
+                    test: /\.(png|jpg|gif|svg|docx)$/,
                     use: [
                         {
                             loader: require.resolve('file-loader'),

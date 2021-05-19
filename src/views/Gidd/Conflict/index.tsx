@@ -55,6 +55,7 @@ import {
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
+import readMe from '#resources/ReadMeFile_GIDD.docx';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
@@ -324,6 +325,15 @@ function Conflict(props: Props) {
         getCsvValue,
     );
 
+    const handleDownloadClick = useCallback(() => {
+        handleDownload();
+        const url = readMe;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ReadMeFile_GIDD.docx';
+        a.click();
+    }, [handleDownload]);
+
     return (
         <div className={_cs(className, styles.conflict)}>
             {pending && <PendingMessage className={styles.pending} />}
@@ -477,7 +487,7 @@ function Conflict(props: Props) {
                 <div className={styles.footerContainer}>
                     <Button
                         name="download"
-                        onClick={handleDownload}
+                        onClick={handleDownloadClick}
                         icons={(
                             <IoMdDownload />
                         )}
