@@ -280,7 +280,7 @@ function Conflict(props: Props) {
             ),
             createNumberColumn<ConflictData, string>(
                 'stock_displacement',
-                'Total no of IDPs',
+                'Total number of IDPs',
                 (item) => round(item.stock_displacement),
                 {
                     sortable: true,
@@ -399,7 +399,7 @@ function Conflict(props: Props) {
                                 />
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="Total no of IDPs"
+                                    label="Total number of IDPs"
                                     secondarySubLabel="Conflict and Violence"
                                     value={noAsOfEnd}
                                     subLabel={`As of end of ${finalFormValue.years[1]}`}
@@ -410,8 +410,9 @@ function Conflict(props: Props) {
                         </div>
                         <div className={styles.chartsContainer}>
                             <BarChart
-                                width={360}
-                                height={240}
+                                className={styles.chart}
+                                width={320}
+                                height={200}
                                 data={filteredAggregatedData}
                             >
                                 <XAxis
@@ -439,8 +440,9 @@ function Conflict(props: Props) {
                                 />
                             </BarChart>
                             <LineChart
-                                width={360}
-                                height={240}
+                                className={styles.chart}
+                                width={320}
+                                height={200}
                                 data={filteredAggregatedData}
                             >
                                 <XAxis

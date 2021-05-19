@@ -520,9 +520,10 @@ function Disaster(props: Props) {
                         </div>
                         <div className={styles.chartsContainer}>
                             <BarChart
-                                width={360}
-                                height={240}
+                                width={320}
+                                height={200}
                                 data={filteredAggregatedData}
+                                className={styles.chart}
                             >
                                 <XAxis
                                     dataKey="year"
@@ -549,8 +550,9 @@ function Disaster(props: Props) {
                                 />
                             </BarChart>
                             <PieChart
-                                width={360}
-                                height={240}
+                                width={280}
+                                height={200}
+                                className={styles.chart}
                             >
                                 <Tooltip
                                     formatter={valueFormatter}

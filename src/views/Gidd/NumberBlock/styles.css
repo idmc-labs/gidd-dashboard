@@ -51,5 +51,14 @@
             font-size: var(--font-size-large);
         }
     }
+
+    &.xsmall {
+        .value {
+            font-size: var(--font-size-medium);
+        }
+        .label {
+            font-size: var(--font-size-small);
+        }
+    }
 }
 

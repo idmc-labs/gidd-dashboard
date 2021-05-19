@@ -19,7 +19,6 @@
             flex-grow: 1;
             margin: var(--spacing-small);
             color: var(--color-primary);
-            font-family: 'Lora', sans-serif!important;
         }
     }
 
@@ -84,6 +83,11 @@
                 display: flex;
                 flex-grow: 1;
                 flex-wrap: wrap;
+                padding: calc(var(--spacing-large) - var(--spacing-small));
+
+                .chart {
+                    margin: var(--spacing-small);
+                }
             }
         }
 

@@ -2,3 +2,14 @@
     width: 100vw;
     height: 100vh;
 }
+
+:global {
+    .MuiTooltip-popper {
+        >* {
+            font-size: 12px!important;
+        }
+    }
+    .MuiSlider-root {
+        color: var(--tui-color-primary)!important;
+    }
+}

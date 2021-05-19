@@ -27,7 +27,7 @@ function NumberBlock({
     value: number | null | undefined;
     className?: string;
     variant?: 'conflict' | 'normal' | 'disaster';
-    size?: 'large' | 'medium' | 'small';
+    size?: 'large' | 'medium' | 'small' | 'xsmall';
     hideIfNoValue?: boolean;
     abbreviate?: boolean;
 }) {

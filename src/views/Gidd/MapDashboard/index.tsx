@@ -50,6 +50,7 @@ import styles from './styles.css';
 
 const newDisplacementTooltip = 'New displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense, the number of new displacements does not equal to the number of people displaced during the year.';
 const idpTooltip = 'Total number of IDPs corresponds to the total number of people living in internal displacement as of 31 December 2020.';
+const mapDisclaimer = 'The boundaries and the names shown and the designations used on this map do not imply official endorsement or acceptance by IDMC.';
 
 interface DisplacementData {
     iso3: string;
@@ -125,13 +126,13 @@ function Tooltip({
 
     return (
         <div className={styles.mapTooltip}>
-            <h3>{info?.geo_name}</h3>
+            <h3 className={styles.heading}>{info?.geo_name}</h3>
             <NumberBlock
                 className={styles.block}
                 label="Total number of IDPs"
                 subLabel="as a result of conflict and violence as of the end of the year"
                 value={info?.conflict_stock_displacement}
-                size="small"
+                size="xsmall"
                 hideIfNoValue
                 variant="conflict"
                 abbreviate={false}
@@ -140,7 +141,7 @@ function Tooltip({
                 className={styles.block}
                 label="Conflict and violence new displacements"
                 value={info?.conflict_new_displacements}
-                size="small"
+                size="xsmall"
                 variant="conflict"
                 hideIfNoValue
                 abbreviate={false}
@@ -150,7 +151,7 @@ function Tooltip({
                 label="Total number of IDPs"
                 subLabel="as a result of disasters as of the end of the year"
                 value={info?.disaster_stock_displacement}
-                size="small"
+                size="xsmall"
                 variant="disaster"
                 hideIfNoValue
                 abbreviate={false}
@@ -160,7 +161,7 @@ function Tooltip({
                 label="Disaster new displacements"
                 value={info?.disaster_new_displacements}
                 variant="disaster"
-                size="small"
+                size="xsmall"
                 hideIfNoValue
                 abbreviate={false}
             />
@@ -233,17 +234,21 @@ function MapDashboard(props: Props) {
             .filter((r) => isDefined(r.disaster_stock_displacement));
 
         return {
-            newConflictTotal: add(definedNewConflicts.map((c) => c.conflict_new_displacements)),
+            newConflictTotal: add(
+                definedNewConflicts.map((c) => c.conflict_new_displacements),
+            ) ?? 0,
             newConflictCountriesCount: definedNewConflicts.length,
-            newDisasterTotal: add(definedNewDisasters.map((c) => c.disaster_new_displacements)),
+            newDisasterTotal: add(
+                definedNewDisasters.map((c) => c.disaster_new_displacements),
+            ) ?? 0,
             newDisastersCountriesCount: definedNewDisasters.length,
             totalIdpConflictCount: add(
                 definedStockConflict.map((c) => c.conflict_stock_displacement),
-            ),
+            ) ?? 0,
             idpConflictCountriesCount: definedStockConflict.length,
             totalIdpDisasterCount: add(
                 definedStockDisasters.map((c) => c.disaster_stock_displacement),
-            ),
+            ) ?? 0,
             idpDisasterCountriesCount: definedStockDisasters.length,
         };
     }, [response?.results]);
@@ -345,7 +350,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'conflict_stock_displacement',
-                'Conflict Total no of IDPs',
+                'Conflict Total number of IDPs',
                 (item) => item.conflict_stock_displacement,
                 {
                     sortable: true,
@@ -363,7 +368,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_stock_displacement',
-                'Disaster Total no of IDPs',
+                'Disaster Total number of IDPs',
                 (item) => item.disaster_stock_displacement,
                 {
                     sortable: true,
@@ -378,7 +383,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalStock',
-                'Total no of IDPS',
+                'Total number of IDPS',
                 (item) => add([item.disaster_stock_displacement, item.conflict_stock_displacement]),
                 { sortable: true },
             ),
@@ -561,21 +566,27 @@ function MapDashboard(props: Props) {
                             </MapTooltip>
                         )}
                     </Map>
+                    <p className={styles.disclaimer}>
+                        {mapDisclaimer}
+                    </p>
                 </div>
                 <div className={styles.rightContainer}>
-                    <div className={_cs(styles.infoBox, styles.topBox)}>
-                        <h2 className={styles.heading}>
-                            New Displacements in 2020
-                            <MdTooltip
-                                className={styles.tooltip}
-                                title={newDisplacementTooltip}
-                                placement="bottom"
-                            >
-                                <p className={styles.tooltipContainer}>
-                                    <AiOutlineInfoCircle className={styles.tooltip} />
-                                </p>
-                            </MdTooltip>
-                        </h2>
+                    <div className={styles.infoBox}>
+                        <header className={styles.header}>
+                            <h2 className={styles.heading}>
+                                New Displacements
+                                <MdTooltip
+                                    className={styles.tooltip}
+                                    title={newDisplacementTooltip}
+                                    placement="bottom"
+                                >
+                                    <p className={styles.tooltipContainer}>
+                                        <AiOutlineInfoCircle className={styles.tooltip} />
+                                    </p>
+                                </MdTooltip>
+                            </h2>
+                            <span>in 2020</span>
+                        </header>
                         <NumberBlock
                             label="Total"
                             value={newDisplacementTotal}
@@ -600,21 +611,23 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                     <div className={styles.infoBox}>
-                        <h2 className={styles.heading}>
-                            Total Number of IDPs
-                            <MdTooltip
-                                className={styles.tooltip}
-                                title={idpTooltip}
-                                placement="bottom"
-                            >
-                                <p className={styles.tooltipContainer}>
-                                    <AiOutlineInfoCircle
-                                        className={styles.tooltip}
-                                    />
-                                </p>
-                            </MdTooltip>
-                        </h2>
-                        <span>as of the end of 2020</span>
+                        <header className={styles.header}>
+                            <h2 className={styles.heading}>
+                                Total Number of IDPs
+                                <MdTooltip
+                                    className={styles.tooltip}
+                                    title={idpTooltip}
+                                    placement="bottom"
+                                >
+                                    <p className={styles.tooltipContainer}>
+                                        <AiOutlineInfoCircle
+                                            className={styles.tooltip}
+                                        />
+                                    </p>
+                                </MdTooltip>
+                            </h2>
+                            <span>as of the end of 2020</span>
+                        </header>
                         <NumberBlock
                             label="Total"
                             value={totalIdpCount}
@@ -650,7 +663,9 @@ function MapDashboard(props: Props) {
                     download
                 >
                     <AiOutlineFileExcel className={styles.icon} />
-                    Conflict/violence - disasters 2008-2020 per year
+                    <div className={styles.text}>
+                        Conflict/violence - disasters 2008-2020 per year
+                    </div>
                 </a>
                 <a
                     href="https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx"
@@ -658,7 +673,9 @@ function MapDashboard(props: Props) {
                     download
                 >
                     <AiOutlineFileExcel className={styles.icon} />
-                    Disaster events 2008-2020 (new displacement) per hazard type
+                    <div className={styles.text}>
+                        Disaster events 2008-2020 (new displacement) per hazard type
+                    </div>
                 </a>
             </div>
             <div className={styles.bottomContent}>
