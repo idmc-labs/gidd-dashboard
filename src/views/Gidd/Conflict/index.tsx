@@ -337,7 +337,7 @@ function Conflict(props: Props) {
         <div className={_cs(className, styles.conflict)}>
             {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
-                <h1 className={styles.heading}>IDMC Query Tool - Conflict and Violence</h1>
+                <h1 className={styles.heading}>IDMC Query Tool - Conflict and violence</h1>
                 <Button
                     className={styles.button}
                     name="back"
@@ -400,7 +400,7 @@ function Conflict(props: Props) {
                                 <NumberBlock
                                     className={styles.numberBlock}
                                     label="New displacements"
-                                    secondarySubLabel="Conflict and Violence"
+                                    secondarySubLabel="Conflict and violence"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={noTotal}
                                     variant="conflict"
@@ -409,7 +409,7 @@ function Conflict(props: Props) {
                                 <NumberBlock
                                     className={styles.numberBlock}
                                     label="Total number of IDPs"
-                                    secondarySubLabel="Conflict and Violence"
+                                    secondarySubLabel="Conflict and violence"
                                     value={noAsOfEnd}
                                     subLabel={`As of end of ${finalFormValue.years[1]}`}
                                     variant="conflict"
