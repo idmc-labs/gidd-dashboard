@@ -48,7 +48,7 @@ module.exports = (env) => {
             publicPath: '/',
             sourceMapFilename: 'sourcemaps/[file].map',
             chunkFilename: 'js/[name].[chunkhash].js',
-            filename: 'js/[name].[contenthash].js',
+            filename: 'js/[name].js',
         },
 
         resolve: {
@@ -158,7 +158,7 @@ module.exports = (env) => {
                         {
                             loader: require.resolve('file-loader'),
                             options: {
-                                name: 'assets/[name].[contenthash].[ext]',
+                                name: 'assets/[name].[ext]',
                             },
                         },
                     ],
@@ -189,7 +189,7 @@ module.exports = (env) => {
                 chunksSortMode: 'none',
             }),
             new MiniCssExtractPlugin({
-                filename: 'css/[name].[contenthash].css',
+                filename: 'css/[name].css',
                 chunkFilename: 'css/[id].[contenthash].css',
             }),
             /*
