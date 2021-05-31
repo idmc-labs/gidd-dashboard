@@ -1,5 +1,6 @@
 import React from 'react';
 import { init, ErrorBoundary } from '@sentry/react';
+import 'requestidlecallback-polyfill';
 
 import Error from '#views/Error';
 import App from './App';

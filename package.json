@@ -9,7 +9,8 @@
     "sideEffects": [
         "src/Root/App/styles.css",
         "./node_modules/mapbox-gl/dist/mapbox-gl.css",
-        "@togglecorp/toggle-ui/build/index.css"
+        "@togglecorp/toggle-ui/build/index.css",
+        "requestidlecallback-polyfill"
     ],
     "scripts": {
         "start": "webpack-dev-server --mode development --config config/webpack.dev.js --env.NODE_ENV=development --history-api-fallback --config-register @babel/register --color --disable-host-check",
