@@ -473,11 +473,7 @@ function MapDashboard(props: Props) {
     );
 
     const handleDisasterFileDownload = useCallback(() => {
-        const url2 = 'https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx';
-        const a2 = document.createElement('a');
-        a2.href = url2;
-        a2.download = 'IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx';
-        a2.click();
+        window.open('https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx');
 
         setTimeout(() => {
             const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
@@ -489,11 +485,7 @@ function MapDashboard(props: Props) {
     }, []);
 
     const handleConflictFileDownload = useCallback(() => {
-        const url2 = 'https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx';
-        const a2 = document.createElement('a');
-        a2.href = url2;
-        a2.download = 'IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx';
-        a2.click();
+        window.open('https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx');
 
         setTimeout(() => {
             const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
