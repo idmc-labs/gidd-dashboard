@@ -60,11 +60,6 @@ export const regions = [
         countries: ['CXR', 'TKL', 'NFK', 'NIU', 'WLF', 'PCN', 'HMD', 'UMI', 'CCK', 'ASM', 'AUS', 'BRN', 'KHM', 'COK', 'CHN', 'FJI', 'PYF', 'GUM', 'HKG', 'IDN', 'JPN', 'KIR', 'PRK', 'LAO', 'MYS', 'MHL', 'FSM', 'MAC', 'MNG', 'MMR', 'NCL', 'NZL', 'MNP', 'PLW', 'PNG', 'PHL', 'WSM', 'KOR', 'NRU', 'SGP', 'SLB', 'TWN', 'THA', 'TLS', 'TON', 'TUV', 'VUT', 'VNM'],
     },
     {
-        key: 'Europe & Central Asia',
-        value: 'Europe & Central Asia',
-        countries: ['VAT', 'SJM', 'GIB', 'SRK', 'ALA', 'JEY', 'GGY'],
-    },
-    {
         key: 'Sub-Saharan Africa',
         value: 'Sub-Saharan Africa',
         countries: ['SHN', 'MYT', 'REU', 'BEN', 'TZA', 'AB9', 'AGO', 'BWA', 'TCD', 'GNQ', 'CIV', 'GMB', 'GIN', 'MWI', 'ATF', 'IOT', 'BFA', 'ERI', 'ETH', 'COM', 'COG', 'CPV', 'CAF', 'GNB', 'KEN', 'GHA', 'LBR', 'MLI', 'MDG', 'MOZ', 'LSO', 'NAM', 'MRT', 'MUS', 'SEN', 'RWA', 'SYC', 'NGA', 'SLE', 'ZAF', 'TGO', 'SOM', 'UGA', 'SWZ', 'CMR', 'COD', 'GAB', 'BDI', 'NER', 'SDN', 'STP', 'ZWE', 'SSD', 'ZMB'],
@@ -77,7 +72,7 @@ export const regions = [
     {
         key: 'Europe and Central Asia',
         value: 'Europe and Central Asia',
-        countries: ['ALB', 'AND', 'ARM', 'AUT', 'AZE', 'BLR', 'BEL', 'BIH', 'XKX', 'BGR', 'HRV', 'CYP', 'CZE', 'DNK', 'EST', 'FRO', 'FIN', 'FRA', 'GEO', 'DEU', 'GRC', 'GRL', 'HUN', 'ISL', 'IRL', 'IMN', 'ITA', 'KAZ', 'KGZ', 'LVA', 'LIE', 'LTU', 'LUX', 'MKD', 'MDA', 'MCO', 'MNE', 'NLD', 'NOR', 'POL', 'PRT', 'ROU', 'RUS', 'SMR', 'SRB', 'SVK', 'SVN', 'ESP', 'SWE', 'CHE', 'TJK', 'TUR', 'TKM', 'UKR', 'UZB', 'GBR'],
+        countries: ['VAT', 'SJM', 'GIB', 'SRK', 'ALA', 'JEY', 'GGY', 'ALB', 'AND', 'ARM', 'AUT', 'AZE', 'BLR', 'BEL', 'BIH', 'XKX', 'BGR', 'HRV', 'CYP', 'CZE', 'DNK', 'EST', 'FRO', 'FIN', 'FRA', 'GEO', 'DEU', 'GRC', 'GRL', 'HUN', 'ISL', 'IRL', 'IMN', 'ITA', 'KAZ', 'KGZ', 'LVA', 'LIE', 'LTU', 'LUX', 'MKD', 'MDA', 'MCO', 'MNE', 'NLD', 'NOR', 'POL', 'PRT', 'ROU', 'RUS', 'SMR', 'SRB', 'SVK', 'SVN', 'ESP', 'SWE', 'CHE', 'TJK', 'TUR', 'TKM', 'UKR', 'UZB', 'GBR'],
     },
     {
         key: 'Middle East and North Africa',
