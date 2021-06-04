@@ -404,6 +404,11 @@ function Disaster(props: Props) {
                 { sortable: true },
             ),
             ...columns,
+            createTextColumn<DisasterData, string>(
+                'hazard_sub_type',
+                'Hazard Sub Type',
+                (item) => item.hazard_sub_type,
+            ),
         ]),
         [columns],
     );
