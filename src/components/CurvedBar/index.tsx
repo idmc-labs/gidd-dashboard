@@ -1,7 +1,7 @@
 import React from 'react';
 
 // NOTE: No types defined by Recharts
-function CustomBar(props: any) {
+function CurvedBar(props: any) {
     const {
         fill,
         x,
@@ -23,4 +23,4 @@ function CustomBar(props: any) {
     );
 }
 
-export default CustomBar;
+export default CurvedBar;

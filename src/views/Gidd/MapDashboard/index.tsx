@@ -134,9 +134,9 @@ function Tooltip({
                 subLabel="as a result of conflict and violence as of the end of the year"
                 value={info?.conflict_stock_displacement}
                 size="xsmall"
-                hideIfNoValue
+                hiddenIfNoValue
                 variant="conflict"
-                abbreviate={false}
+                abbreviated={false}
             />
             <NumberBlock
                 className={styles.block}
@@ -144,8 +144,8 @@ function Tooltip({
                 value={info?.conflict_new_displacements}
                 size="xsmall"
                 variant="conflict"
-                hideIfNoValue
-                abbreviate={false}
+                hiddenIfNoValue
+                abbreviated={false}
             />
             <NumberBlock
                 className={styles.block}
@@ -154,8 +154,8 @@ function Tooltip({
                 value={info?.disaster_stock_displacement}
                 size="xsmall"
                 variant="disaster"
-                hideIfNoValue
-                abbreviate={false}
+                hiddenIfNoValue
+                abbreviated={false}
             />
             <NumberBlock
                 className={styles.block}
@@ -163,8 +163,8 @@ function Tooltip({
                 value={info?.disaster_new_displacements}
                 variant="disaster"
                 size="xsmall"
-                hideIfNoValue
-                abbreviate={false}
+                hiddenIfNoValue
+                abbreviated={false}
             />
         </div>
     );
@@ -173,6 +173,11 @@ function Tooltip({
 const lightStyle = 'mapbox://styles/mapbox/light-v10';
 
 const displacementItemKeySelector = (d: DisplacementData) => d.iso3;
+
+const mapDashboardQuery = {
+    year: 2020,
+    ci: 'IDMCWSHSOLO009',
+};
 
 interface Props {
     className?: string;
@@ -195,11 +200,7 @@ function MapDashboard(props: Props) {
         response,
     } = useRequest<MultiResponse<DisplacementData>>({
         url: 'https://api.idmcdb.org/api/displacement_data',
-        query: {
-            // NOTE: To be changed to 2020 after data is available
-            year: 2020,
-            ci: 'IDMCWSHSOLO009',
-        },
+        query: mapDashboardQuery,
         method: 'GET',
     });
 
@@ -267,7 +268,7 @@ function MapDashboard(props: Props) {
                 sortedData: [],
             };
         }
-        const finalSortedData = [...response.results].map((d) => ({
+        const finalSortedData = response.results.map((d) => ({
             ...d,
             conflict_stock_displacement: removeZero(d.conflict_stock_displacement),
             conflict_new_displacements: removeZero(d.conflict_new_displacements),

@@ -283,7 +283,7 @@ function Disaster(props: Props) {
                 label: String(k),
                 total: add(
                     d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ),
+                ) ?? 0,
             })
         ));
         const pies = calcPieSizes(dataTotalByHazardType);

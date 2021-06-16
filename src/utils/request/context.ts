@@ -1,11 +1,13 @@
 import { createContext } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type RequestOption = Omit<RequestInit, 'body'> & { body?: RequestInit['body'] | object | undefined };
+
 export interface ContextInterface {
     transformUrl: (url: string) => string;
     transformOptions: (
         url: string,
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        options: Omit<RequestInit, 'body'> & { body?: RequestInit['body'] | object | undefined },
+        options: RequestOption,
     ) => RequestInit;
 }
 

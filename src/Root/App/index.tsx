@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
-import { RequestContext } from '#utils/request';
+import {
+    RequestContext,
+} from '#utils/request';
+import { RequestOption } from '#utils/request/context';
 import { processOptions } from '#utils/request/utils';
 
 import '@togglecorp/toggle-ui/build/index.css';
@@ -10,10 +13,10 @@ import './styles.css';
 import Gidd from '../../views/Gidd';
 
 function App() {
-    const requestContextValue = {
+    const requestContextValue = useMemo(() => ({
         transformUrl: (d: string) => d,
-        transformOptions: (_: string, options) => processOptions(options),
-    };
+        transformOptions: (_: string, options: RequestOption) => processOptions(options),
+    }), []);
 
     return (
         <RequestContext.Provider value={requestContextValue}>

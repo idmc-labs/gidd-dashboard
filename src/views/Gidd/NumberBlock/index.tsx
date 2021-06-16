@@ -18,8 +18,8 @@ function NumberBlock({
     className,
     variant = 'normal',
     size = 'small',
-    hideIfNoValue = false,
-    abbreviate = true,
+    hiddenIfNoValue = false,
+    abbreviated = true,
 }: {
     label: string;
     secondarySubLabel?: string;
@@ -28,11 +28,11 @@ function NumberBlock({
     className?: string;
     variant?: 'conflict' | 'normal' | 'disaster';
     size?: 'large' | 'medium' | 'small' | 'xsmall';
-    hideIfNoValue?: boolean;
-    abbreviate?: boolean;
+    hiddenIfNoValue?: boolean;
+    abbreviated?: boolean;
 }) {
     const counterValue = useCounter(value, 600, 'exp');
-    if (isNotDefined(value) && hideIfNoValue) {
+    if (isNotDefined(value) && hiddenIfNoValue) {
         return null;
     }
 
@@ -49,7 +49,7 @@ function NumberBlock({
                 className={styles.value}
                 value={counterValue}
                 placeholder="N/a"
-                abbreviate={abbreviate}
+                abbreviate={abbreviated}
             />
             <div className={styles.label}>
                 { label }

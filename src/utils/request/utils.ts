@@ -1,6 +1,7 @@
 import { isDefined, isNotDefined, isTruthyString } from '@togglecorp/fujs';
 
 import { UrlParams } from './types';
+import type { RequestOption } from './context';
 
 // eslint-disable-next-line import/prefer-default-export
 export function prepareUrlParams(params: UrlParams): string {
@@ -25,7 +26,7 @@ export function prepareUrlParams(params: UrlParams): string {
         .join('&');
 }
 
-export function processOptions(options: RequestInit) {
+export function processOptions(options: RequestOption) {
     const {
         body,
         headers,
