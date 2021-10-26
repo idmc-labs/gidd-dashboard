@@ -66,6 +66,14 @@ interface DisplacementData {
     disaster_stock_displacement?: number;
     // eslint-disable-next-line camelcase
     disaster_new_displacements?: number;
+    // eslint-disable-next-line camelcase
+    conflict_stock_displacement_raw?: number;
+    // eslint-disable-next-line camelcase
+    conflict_new_displacements_raw?: number;
+    // eslint-disable-next-line camelcase
+    disaster_stock_displacement_raw?: number;
+    // eslint-disable-next-line camelcase
+    disaster_new_displacements_raw?: number;
 }
 
 interface GeoJsonFeature {
@@ -402,6 +410,42 @@ function MapDashboard(props: Props) {
                 { sortable: true },
             ),
             ...columns,
+            createNumberColumn<DisplacementData, string>(
+                'conflict_new_displacements_raw',
+                'Conflict New Displacement Raw',
+                (item) => item.conflict_new_displacements_raw,
+                {
+                    sortable: true,
+                    variant: 'conflict',
+                },
+            ),
+            createNumberColumn<DisplacementData, string>(
+                'conflict_stock_displacement_raw',
+                'Conflict Total number of IDPs Raw',
+                (item) => item.conflict_stock_displacement_raw,
+                {
+                    sortable: true,
+                    variant: 'conflict',
+                },
+            ),
+            createNumberColumn<DisplacementData, string>(
+                'disaster_new_displacements_raw',
+                'Disaster New Displacement Raw',
+                (item) => item.disaster_new_displacements_raw,
+                {
+                    sortable: true,
+                    variant: 'disaster',
+                },
+            ),
+            createNumberColumn<DisplacementData, string>(
+                'disaster_stock_displacement_raw',
+                'Disaster Total number of IDPs Raw',
+                (item) => item.disaster_stock_displacement_raw,
+                {
+                    sortable: true,
+                    variant: 'disaster',
+                },
+            ),
         ]),
         [columns],
     );

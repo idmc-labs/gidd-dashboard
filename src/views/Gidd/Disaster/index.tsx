@@ -451,7 +451,7 @@ function Disaster(props: Props) {
             </header>
             <div className={styles.content}>
                 <div className={styles.filters}>
-                    <MultiSelectInput<string, 'regions', Item, any>
+                    <MultiSelectInput
                         name="regions"
                         className={styles.filter}
                         label="Regions"
