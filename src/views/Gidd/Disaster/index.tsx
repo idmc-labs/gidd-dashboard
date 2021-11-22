@@ -30,7 +30,6 @@ import {
     createDateColumn,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
@@ -53,6 +52,7 @@ import {
     add,
     valueFormatter,
     regions,
+    useDownloading,
     regionMap,
     calcPieSizes,
     removeZero,
@@ -413,7 +413,7 @@ function Disaster(props: Props) {
         [columns],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             filteredData,
             columnsForDownload,
@@ -423,7 +423,7 @@ function Disaster(props: Props) {
 
     const handleDownload = useDownloading(
         'IDMC_GIDD_disasters_internal_displacement_data_2020',
-        getCsvValue,
+        getDownloadValue,
     );
 
     const handleDownloadClick = useCallback(() => {

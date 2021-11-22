@@ -160,6 +160,7 @@
         "@types/mapbox-gl": "^1.12.8",
         "@types/recharts": "^1.8.19",
         "@types/uuid": "^8.3.0",
+        "@types/xlsx": "^0.0.36",
         "abort-controller": "^3.0.0",
         "core-js": "3.8.1",
         "history": "^4.9.0",
@@ -176,6 +177,7 @@
         "requestidlecallback-polyfill": "^1.0.2",
         "resize-observer-polyfill": "^1.5.1",
         "turf-featurecollection": "^1.0.1",
-        "uuid": "^8.3.2"
+        "uuid": "^8.3.2",
+        "xlsx": "^0.17.4"
     }
 }

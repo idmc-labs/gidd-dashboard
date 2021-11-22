@@ -21,7 +21,6 @@ import {
     Pager,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
@@ -38,6 +37,7 @@ import {
     MultiResponse,
     add,
     removeZero,
+    useDownloading,
 } from '#utils/common';
 import {
     createTextColumn,
@@ -504,7 +504,7 @@ function MapDashboard(props: Props) {
         [setHoveredRegionProperties],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             sortedData,
             columnsForDownload,
@@ -514,7 +514,7 @@ function MapDashboard(props: Props) {
 
     const handleDownload = useDownloading(
         'IDMC_GIDD_internal_displacement_data_2020',
-        getCsvValue,
+        getDownloadValue,
     );
 
     const handleDisasterFileDownload = useCallback(() => {

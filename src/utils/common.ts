@@ -8,10 +8,38 @@ import {
     formattedNormalize,
     compareNumber,
 } from '@togglecorp/fujs';
+import sheet from 'xlsx';
 import {
     BasicEntity,
     EnumEntity,
 } from '#types';
+
+interface Row {
+    [key: string]: string | number | boolean | undefined | null;
+}
+
+export function useDownloading(name: string, valueCreator: () => Row[] | undefined | null) {
+    const handleClick = () => {
+        const value = valueCreator();
+        if (!value) {
+            return;
+        }
+        const ws = sheet.utils.json_to_sheet(value);
+
+        const wb = sheet.utils.book_new();
+        if (!wb.Props) {
+            wb.Props = {};
+        }
+        wb.Props.Title = 'Data';
+        sheet.utils.book_append_sheet(wb, ws);
+
+        const currentTimestamp = (new Date()).getTime();
+        const fileName = `${name}-${currentTimestamp}.xlsx`;
+
+        sheet.writeFile(wb, fileName);
+    };
+    return handleClick;
+}
 
 export function valueFormatter(value: number) {
     const {

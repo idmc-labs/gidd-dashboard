@@ -28,7 +28,6 @@ import {
     Pager,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
@@ -47,6 +46,7 @@ import { useRequest } from '#utils/request';
 import {
     MultiResponse,
     add,
+    useDownloading,
     valueFormatter,
     regions,
     regionMap,
@@ -311,7 +311,7 @@ function Conflict(props: Props) {
         [columns],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             filteredData,
             columnsForDownload,
@@ -321,7 +321,7 @@ function Conflict(props: Props) {
 
     const handleDownload = useDownloading(
         'IDMC_GIDD_conflict_internal_displacement_data_2020',
-        getCsvValue,
+        getDownloadValue,
     );
 
     const handleDownloadClick = useCallback(() => {
