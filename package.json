@@ -9,19 +9,19 @@
     "sideEffects": [
         "src/Root/App/styles.css",
         "./node_modules/mapbox-gl/dist/mapbox-gl.css",
-        "@togglecorp/toggle-ui/build/index.css"
+        "@togglecorp/toggle-ui/build/index.css",
+        "requestidlecallback-polyfill"
     ],
     "scripts": {
         "start": "webpack-dev-server --mode development --config config/webpack.dev.js --env.NODE_ENV=development --history-api-fallback --config-register @babel/register --color --disable-host-check",
-        "build:raw": "webpack --mode production --config config/webpack.prod.js --env.NODE_ENV=production --config-register @babel/register",
-        "build": "yarn run generate && yarn run typecheck && yarn run build:raw",
-        "build:unsafe": "mkdir -p generated && touch generated/types.tsx && yarn run build:raw",
+        "build": "webpack --optimize-max-chunks 1 --mode production --config config/webpack.prod.js --env.NODE_ENV=production --config-register @babel/register",
         "serve": "http-server ./build/ -p 3080 -g -c-1",
         "test": "jest",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
         "typecheck": "tsc",
-        "lint": "eslint ./src"
+        "lint": "eslint ./src",
+        "deploy:dev": "test -d build && cp -f build/index.html build/200.html && surge --domain gidd-2020.surge.sh build/"
     },
     "jest": {
         "setupFiles": [
@@ -152,13 +152,15 @@
         "@togglecorp/fujs": "^1.9.2-beta.0",
         "@togglecorp/re-map": "^0.1.0",
         "@togglecorp/toggle-form": "^0.1.1",
-        "@togglecorp/toggle-ui": "^0.10.0-beta.6",
+        "@togglecorp/toggle-ui": "^0.10.1-beta.6",
         "@turf/bbox": "^6.0.1",
         "@turf/bbox-polygon": "^6.0.1",
         "@turf/bearing": "^6.3.0",
         "@turf/combine": "^6.0.1",
         "@types/mapbox-gl": "^1.12.8",
+        "@types/recharts": "^1.8.19",
         "@types/uuid": "^8.3.0",
+        "abort-controller": "^3.0.0",
         "core-js": "3.8.1",
         "history": "^4.9.0",
         "immer": "^7.0.14",
@@ -170,6 +172,8 @@
         "react-mde": "^11.0.0",
         "react-router-dom": "^5.2.0",
         "react-showdown": "^2.1.0",
+        "recharts": "^2.0.9",
+        "requestidlecallback-polyfill": "^1.0.2",
         "resize-observer-polyfill": "^1.5.1",
         "turf-featurecollection": "^1.0.1",
         "uuid": "^8.3.2"

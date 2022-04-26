@@ -1,24 +1,41 @@
-import React from 'react';
-import { _cs } from '@togglecorp/fujs';
-import { Numeral } from '@togglecorp/toggle-ui';
+import React, { memo } from 'react';
+import {
+    _cs,
+    isNotDefined,
+} from '@togglecorp/fujs';
+import {
+    Numeral,
+    useCounter,
+} from '@togglecorp/toggle-ui';
 
 import styles from './styles.css';
 
 function NumberBlock({
     label,
+    secondarySubLabel,
     subLabel,
     value,
     className,
     variant = 'normal',
     size = 'small',
+    hiddenIfNoValue = false,
+    abbreviated = true,
 }: {
     label: string;
+    secondarySubLabel?: string;
     subLabel?: string;
     value: number | null | undefined;
     className?: string;
     variant?: 'conflict' | 'normal' | 'disaster';
-    size?: 'large' | 'medium' | 'small';
+    size?: 'large' | 'medium' | 'small' | 'xsmall';
+    hiddenIfNoValue?: boolean;
+    abbreviated?: boolean;
 }) {
+    const counterValue = useCounter(value, 600, 'exp');
+    if (isNotDefined(value) && hiddenIfNoValue) {
+        return null;
+    }
+
     return (
         <div
             className={_cs(
@@ -30,13 +47,18 @@ function NumberBlock({
         >
             <Numeral
                 className={styles.value}
-                value={value}
+                value={counterValue}
                 placeholder="N/a"
-                abbreviate
+                abbreviate={abbreviated}
             />
             <div className={styles.label}>
                 { label }
             </div>
+            {secondarySubLabel && (
+                <div className={styles.label}>
+                    { secondarySubLabel }
+                </div>
+            )}
             {subLabel && (
                 <div className={styles.subLabel}>
                     { subLabel }
@@ -46,4 +68,4 @@ function NumberBlock({
     );
 }
 
-export default NumberBlock;
+export default memo(NumberBlock);

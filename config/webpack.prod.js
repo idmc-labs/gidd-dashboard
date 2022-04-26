@@ -48,7 +48,7 @@ module.exports = (env) => {
             publicPath: '/',
             sourceMapFilename: 'sourcemaps/[file].map',
             chunkFilename: 'js/[name].[chunkhash].js',
-            filename: 'js/[name].[contenthash].js',
+            filename: 'js/[name].js',
         },
 
         resolve: {
@@ -81,6 +81,7 @@ module.exports = (env) => {
                     },
                 }),
             ],
+            /*
             splitChunks: {
                 cacheGroups: {
                     vendors: {
@@ -90,7 +91,8 @@ module.exports = (env) => {
                     },
                 },
             },
-            runtimeChunk: 'single',
+            */
+            runtimeChunk: false,
             moduleIds: 'hashed',
         },
 
@@ -151,12 +153,12 @@ module.exports = (env) => {
                     ],
                 },
                 {
-                    test: /\.(png|jpg|gif|svg)$/,
+                    test: /\.(png|jpg|gif|svg|docx)$/,
                     use: [
                         {
                             loader: require.resolve('file-loader'),
                             options: {
-                                name: 'assets/[name].[contenthash].[ext]',
+                                name: 'assets/[name].[ext]',
                             },
                         },
                     ],
@@ -187,9 +189,10 @@ module.exports = (env) => {
                 chunksSortMode: 'none',
             }),
             new MiniCssExtractPlugin({
-                filename: 'css/[name].[contenthash].css',
+                filename: 'css/[name].css',
                 chunkFilename: 'css/[id].[contenthash].css',
             }),
+            /*
             new WorkboxPlugin.GenerateSW({
                 // these options encourage the ServiceWorkers to get in there fast
                 // and not allow any straggling "old" SWs to hang around
@@ -206,6 +209,8 @@ module.exports = (env) => {
                     },
                 ],
             }),
+            */
+            /*
             new WebpackPwaManifest({
                 name: 'gidd-dashboard',
                 short_name: 'GIDD',
@@ -224,6 +229,7 @@ module.exports = (env) => {
                     },
                 ],
             }),
+            */
             new CompressionPlugin(),
             new ResourceHintWebpackPlugin(),
             new webpack.HashedModuleIdsPlugin(),

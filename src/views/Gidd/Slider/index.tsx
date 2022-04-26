@@ -6,17 +6,17 @@ import styles from './styles.css';
 
 type SliderValue = [number, number];
 
-interface Props {
+interface Props<T> {
     className?: string;
-    name: string;
-    onChange: (newValue: SliderValue | undefined, name: string) => void;
-    value?: SliderValue | null;
+    name: T;
+    onChange: (newValue: SliderValue, name: T) => void;
+    value?: SliderValue;
     min: number;
     max: number;
     step: number;
 }
 
-function Slider(props: Props) {
+function Slider<T extends string>(props: Props<T>) {
     const {
         className,
         value,

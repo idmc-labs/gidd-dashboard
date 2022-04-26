@@ -1,4 +1,43 @@
+:global {
+    #gidd-dashboard-client-root {
+        position: relative;
+        z-index: 0;
+
+        --tui-font-family-sans-serif: 'Lato', sans-serif;
+        --tui-font-family-monospace: 'Inconsolata', monospace;
+
+        color: var(--color-text);
+        font-size: var(--font-size-medium);
+
+        p {
+            margin: 0;
+            text-transform: unset!important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            text-transform: unset!important;
+            font-weight: var(--font-weight-bold)!important;
+        }
+
+        a {
+            color: var(--color-primary);
+
+            &:not(:hover) {
+                text-decoration: none;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: var(--tui-font-family-sans-serif)!important;
+        }
+    }
+}
+
 :root {
+    --color-conflict: #ed7e23;
+    --color-disaster: #078ec9;
+
     /* SPACING */
     --spacing-super-small: 1px;
     --spacing-extra-small: 3px;
@@ -67,25 +106,7 @@
 
 
     --color-separator: rgba(0, 0, 0, .1);
+
+    --tui-color-accent: #0774e1;
 }
 
-body {
-    color: var(--color-text);
-    font-size: var(--font-size-medium);
-}
-
-h1, h2, h3, h4, h5, h6, p {
-    margin: 0;
-}
-
-a {
-    color: var(--color-primary);
-
-    &:not(:hover) {
-        text-decoration: none;
-    }
-}
-
-* {
-    box-sizing: border-box;
-}

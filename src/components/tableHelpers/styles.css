@@ -1,0 +1,18 @@
+.header {
+    * {
+        text-align: right!important;
+    }
+
+    &.conflict {
+        color: var(--color-conflict);
+    }
+
+    &.disaster {
+        color: var(--color-disaster);
+    }
+}
+
+.number {
+    display: block;
+    text-align: right;
+}

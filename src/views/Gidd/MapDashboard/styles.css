@@ -1,95 +1,38 @@
+.map-tooltip {
+    .heading {
+        margin: 0;
+        padding: var(--spacing-extra-small) var(--spacing-small);
+    }
+    .block {
+        padding: var(--spacing-extra-small) var(--spacing-small);
+    }
+}
+
 .map-dashboard {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--spacing-large) - var(--spacing-medium));
+    padding: calc(var(--spacing-extra-large) - var(--spacing-large));
     width: 100%;
-    height: 90vh;
-    --width-right-container: 360px;
 
     .header {
+        display: flex;
+        align-items: center;
         flex-shrink: 0;
-        padding: var(--spacing-medium);
+        padding: calc(var(--spacing-large) - var(--spacing-small));
 
         .heading {
+            flex-grow: 1;
+            padding: var(--spacing-small);
             color: var(--color-primary);
         }
-    }
-
-    .content {
-        display: flex;
-        flex-grow: 1;
-
-        .left-container {
-            padding: var(--spacing-medium);
-            width: calc(100% - var(--width-right-container));
-            height: 100%;
-
-            .map-container {
-                width: 100%;
-                height: 100%;
-            }
-        }
-
-        .right-container {
-            display: flex;
-            flex-direction: column;
-            padding: var(--spacing-medium);
-            width: var(--width-right-container);
-
-            .info-box {
-                flex-basis: 40%;
-
-                .numeral-large {
-                    font-size: 40px;
-                }
-
-                .inline-block {
-                    display: flex;
-
-                    >* {
-                        flex-grow: 1;
-                    }
-                }
-            }
-
-            .download-box {
-                display: flex;
-                align-self: flex-end;
-                flex-direction: column;
-
-                .download-link {
-                    display: flex;
-                    align-items: center;
-                    padding: var(--spacing-small);
-                    text-decoration: none;
-                    color: var(--color-text);
-
-                    .icon {
-                        flex-shrink: 0;
-                        padding: var(--spacing-extra-small);
-                        font-size: var(--font-size-extra-large);
-                    }
-                }
-            }
-        }
-    }
-
-    .footer {
-        display: flex;
-        flex-direction: column;
-        flex-shrink: 0;
-        border-top: var(--color-separator) solid var(--width-separator-thin);
-        border-bottom: var(--color-separator) solid var(--width-separator-thin);
-        padding: var(--spacing-medium);
 
         .button-container {
             display: flex;
             align-items: center;
-            justify-content: space-around;
-            padding: 36px;
 
             .button {
-                font-size: var(--font-size-super-large);
+                margin: var(--spacing-small);
+                text-transform: uppercase;
             }
 
             .conflict-button {
@@ -103,4 +46,121 @@
             }
         }
     }
+
+    .top-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        .left-container {
+            padding: var(--spacing-large);
+
+            .map-container {
+                width: 100%;
+                min-height: 60vh;
+            }
+
+            .disclaimer {
+                margin: var(--spacing-small) 0;
+                color: var(--color-text-disabled);
+                font-style: italic;
+            }
+        }
+
+        .right-container {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--spacing-large);
+
+            .info-box {
+                flex-basis: 50%;
+
+                .header {
+                    display: flex;
+                    align-items: flex-start;
+                    flex-direction: column;
+                    margin: var(--spacing-large) 0;
+
+                    .heading {
+                        display: flex;
+                        align-items: center;
+                        margin: 0;
+                        padding: 0 var(--spacing-small);
+
+                        .tooltip {
+                            margin: 0 var(--spacing-medium);
+                        }
+
+                        .tooltip-container {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0;
+                        }
+                    }
+
+                    span {
+                        padding: 0 var(--spacing-small);
+                    }
+                }
+
+                .inline-block {
+                    display: flex;
+                    flex-wrap: wrap;
+
+                    >* {
+                        flex-shrink: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    .download-box {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-large);
+
+        .download-link {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-small);
+            text-decoration: underline;
+            color: var(--color-text);
+
+            .icon {
+                flex-shrink: 0;
+                margin: 0 var(--spacing-small);
+                font-size: var(--font-size-extra-large);
+            }
+
+            .text {
+                margin: 0 var(--spacing-small);
+            }
+        }
+    }
+
+    .bottom-content {
+        flex-shrink: 0;
+
+        .table {
+            padding: var(--spacing-large);
+            width: 100%;
+
+            .year {
+                width: 96px;
+            }
+        }
+
+        .pager-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-extra-small) var(--spacing-large);
+        }
+    }
+}
+
+.pending {
+    z-index: 111;
 }
