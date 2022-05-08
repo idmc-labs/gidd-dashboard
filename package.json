@@ -21,7 +21,7 @@
         "test:coverage": "jest --coverage",
         "typecheck": "tsc",
         "lint": "eslint ./src",
-        "deploy:dev": "test -d build && cp -f build/index.html build/200.html && surge --domain gidd-2020.surge.sh build/"
+        "deploy:dev": "test -d build && cp -f build/index.html build/200.html && surge --domain gidd-2021.surge.sh build/"
     },
     "jest": {
         "setupFiles": [

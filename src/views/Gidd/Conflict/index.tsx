@@ -43,6 +43,7 @@ import {
     createNumberColumn,
 } from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
+import { currentYear } from '#config/env';
 import {
     MultiResponse,
     add,
@@ -80,7 +81,7 @@ const schema: FormSchema = {
 };
 
 const defaultFormValues: FormType = {
-    years: [2008, 2020],
+    years: [2008, currentYear],
     regions: [],
     countries: [],
 };
@@ -139,7 +140,7 @@ function Conflict(props: Props) {
         pending,
         response,
     } = useRequest<MultiResponse<ConflictData>>({
-        url: 'https://api.idmcdb.org/api/conflict_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        url: `https://api.idmcdb.org/api/conflict_data?ci=IDMCWSHSOLO009&year=2008&year=${currentYear}&range=true`,
         /*
         query: {
             ci: 'IDMCWSHSOLO009',
@@ -288,7 +289,7 @@ function Conflict(props: Props) {
             ),
             createNumberColumn<ConflictData, string>(
                 'new_displacements',
-                'Conflict New Displacements',
+                'Conflict Internal Displacements',
                 (item) => round(item.new_displacements),
                 {
                     sortable: true,
@@ -320,7 +321,7 @@ function Conflict(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'IDMC_GIDD_conflict_internal_displacement_data_2020',
+        `IDMC_GIDD_conflict_internal_displacement_data_${currentYear}`,
         getDownloadValue,
     );
 
@@ -375,7 +376,7 @@ function Conflict(props: Props) {
                         className={_cs(styles.slider, styles.filter)}
                         name="years"
                         min={2008}
-                        max={2020}
+                        max={currentYear}
                         step={1}
                         onChange={onValueChange}
                         value={value.years}
@@ -383,7 +384,7 @@ function Conflict(props: Props) {
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New displacements and total number of IDPs from
+                        {`Internal displacements and total number of IDPs from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -399,7 +400,7 @@ function Conflict(props: Props) {
                             <div className={styles.leftBottomContainer}>
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="New displacements"
+                                    label="Internal displacements"
                                     secondarySubLabel="Conflict and violence"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={noTotal}
@@ -443,7 +444,7 @@ function Conflict(props: Props) {
                                 <Bar
                                     dataKey="total"
                                     fill="var(--color-conflict)"
-                                    name="Conflict new displacements"
+                                    name="Conflict internal displacements"
                                     shape={<CustomBar />}
                                     maxBarSize={16}
                                 />

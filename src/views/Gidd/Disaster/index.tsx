@@ -58,6 +58,7 @@ import {
     removeZero,
     round,
 } from '#utils/common';
+import { currentYear } from '#config/env';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
@@ -95,7 +96,7 @@ const schema: FormSchema = {
 };
 
 const defaultFormValues: FormType = {
-    years: [2008, 2020],
+    years: [2008, currentYear],
     regions: [],
     countries: [],
     disasterType: [],
@@ -187,7 +188,7 @@ function Disaster(props: Props) {
         pending,
         response,
     } = useRequest<MultiResponse<DisasterData>>({
-        url: 'https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        url: `https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=${currentYear}&range=true`,
         /*
         query: {
             ci: 'IDMCWSHSOLO009',
@@ -375,7 +376,7 @@ function Disaster(props: Props) {
             ),
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
-                'Disaster New Displacements',
+                'Disaster Internal Displacements',
                 (item) => round(item.new_displacements),
                 { sortable: true },
             ),
@@ -422,7 +423,7 @@ function Disaster(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'IDMC_GIDD_disasters_internal_displacement_data_2020',
+        `IDMC_GIDD_disasters_internal_displacement_data_${currentYear}`,
         getDownloadValue,
     );
 
@@ -491,7 +492,7 @@ function Disaster(props: Props) {
                         className={_cs(styles.slider, styles.filter)}
                         name="years"
                         min={2008}
-                        max={2020}
+                        max={currentYear}
                         step={1}
                         onChange={onValueChange}
                         value={value.years}
@@ -499,7 +500,7 @@ function Disaster(props: Props) {
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New Displacements from
+                        {`Internal Displacements from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -515,7 +516,7 @@ function Disaster(props: Props) {
                             <div className={styles.leftBottomContainer}>
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="New displacements"
+                                    label="Internal displacements"
                                     secondarySubLabel="Disasters"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={noTotal}
@@ -558,7 +559,7 @@ function Disaster(props: Props) {
                                 <Bar
                                     dataKey="total"
                                     fill="var(--color-disaster)"
-                                    name="Disaster new displacements"
+                                    name="Disaster internal displacements"
                                     shape={<CustomBar />}
                                     maxBarSize={16}
                                 />
