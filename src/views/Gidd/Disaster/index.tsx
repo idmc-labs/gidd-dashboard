@@ -51,6 +51,7 @@ import {
     MultiResponse,
     add,
     valueFormatter,
+    valueFormatterWithoutPrecision,
     regions,
     useDownloading,
     regionMap,
@@ -550,7 +551,7 @@ function Disaster(props: Props) {
                                 />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatter}
+                                    tickFormatter={valueFormatterWithoutPrecision}
                                 />
                                 <Tooltip
                                     formatter={valueFormatter}

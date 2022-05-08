@@ -41,6 +41,15 @@ export function useDownloading(name: string, valueCreator: () => Row[] | undefin
     return handleClick;
 }
 
+export function valueFormatterWithoutPrecision(value: number) {
+    const {
+        number,
+        normalizeSuffix = '',
+    } = formattedNormalize(value, Lang.en);
+
+    return `${number} ${normalizeSuffix}`;
+}
+
 export function valueFormatter(value: number) {
     const {
         number,

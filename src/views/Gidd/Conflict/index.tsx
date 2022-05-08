@@ -49,6 +49,7 @@ import {
     add,
     useDownloading,
     valueFormatter,
+    valueFormatterWithoutPrecision,
     regions,
     regionMap,
     removeZero,
@@ -419,36 +420,6 @@ function Conflict(props: Props) {
                             </div>
                         </div>
                         <div className={styles.chartsContainer}>
-                            <BarChart
-                                className={styles.chart}
-                                width={320}
-                                height={200}
-                                data={filteredAggregatedData}
-                            >
-                                <XAxis
-                                    dataKey="year"
-                                    axisLine={false}
-                                />
-                                <CartesianGrid
-                                    vertical={false}
-                                    strokeDasharray="3 3"
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickFormatter={valueFormatter}
-                                />
-                                <Tooltip
-                                    formatter={valueFormatter}
-                                />
-                                <Legend />
-                                <Bar
-                                    dataKey="total"
-                                    fill="var(--color-conflict)"
-                                    name="Conflict internal displacements"
-                                    shape={<CustomBar />}
-                                    maxBarSize={16}
-                                />
-                            </BarChart>
                             <LineChart
                                 className={styles.chart}
                                 width={320}
@@ -465,22 +436,52 @@ function Conflict(props: Props) {
                                 />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatter}
+                                    tickFormatter={valueFormatterWithoutPrecision}
                                 />
                                 <Tooltip
                                     formatter={valueFormatter}
                                 />
                                 <Legend />
                                 <Line
-                                    dataKey="totalStock"
-                                    name="Conflict total number of IDPs"
-                                    key="totalStock"
+                                    dataKey="total"
+                                    name="Conflict internal displacements"
                                     stroke="var(--color-conflict)"
                                     strokeWidth={2}
                                     connectNulls
                                     dot
                                 />
                             </LineChart>
+                            <BarChart
+                                className={styles.chart}
+                                width={320}
+                                height={200}
+                                data={filteredAggregatedData}
+                            >
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                />
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickFormatter={valueFormatterWithoutPrecision}
+                                />
+                                <Tooltip
+                                    formatter={valueFormatter}
+                                />
+                                <Legend />
+                                <Bar
+                                    dataKey="totalStock"
+                                    name="Conflict total number of IDPs"
+                                    key="totalStock"
+                                    fill="var(--color-conflict)"
+                                    shape={<CustomBar />}
+                                    maxBarSize={16}
+                                />
+                            </BarChart>
                         </div>
                     </div>
                 </div>
