@@ -4,8 +4,6 @@ import {
     isDefined,
     sum,
     listToMap,
-    Lang,
-    formattedNormalize,
     compareNumber,
 } from '@togglecorp/fujs';
 import sheet from 'xlsx';
@@ -13,6 +11,10 @@ import {
     BasicEntity,
     EnumEntity,
 } from '#types';
+import {
+    formatNumberRaw,
+    getAutoPrecision,
+} from '#components/Numeral';
 
 interface Row {
     [key: string]: string | number | boolean | undefined | null;
@@ -39,24 +41,6 @@ export function useDownloading(name: string, valueCreator: () => Row[] | undefin
         sheet.writeFile(wb, fileName);
     };
     return handleClick;
-}
-
-export function valueFormatterWithoutPrecision(value: number) {
-    const {
-        number,
-        normalizeSuffix = '',
-    } = formattedNormalize(value, Lang.en);
-
-    return `${number} ${normalizeSuffix}`;
-}
-
-export function valueFormatter(value: number) {
-    const {
-        number,
-        normalizeSuffix = '',
-    } = formattedNormalize(value, Lang.en);
-
-    return `${number.toPrecision(3)} ${normalizeSuffix}`;
 }
 
 export const basicEntityKeySelector = (d: BasicEntity): string => d.id;
@@ -170,4 +154,23 @@ export function round(data?: number) {
         return sign * Math.round(absoluteData / 100) * 100;
     }
     return sign * Math.round(data / 1000) * 1000;
+}
+
+export function formatNumber(value: number) {
+    const output = formatNumberRaw(
+        value,
+        ',',
+        true,
+        getAutoPrecision(value, 100, 2),
+        0,
+    );
+
+    if (!output) {
+        return '';
+    }
+    const {
+        value: number,
+        valueSuffix: normalizeSuffix = '',
+    } = output;
+    return `${number} ${normalizeSuffix}`;
 }

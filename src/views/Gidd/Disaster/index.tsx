@@ -50,8 +50,7 @@ import { useRequest } from '#utils/request';
 import {
     MultiResponse,
     add,
-    valueFormatter,
-    valueFormatterWithoutPrecision,
+    formatNumber,
     regions,
     useDownloading,
     regionMap,
@@ -158,6 +157,8 @@ const groupedItemLabelSelector = (item: ItemWithGroup) => item.value;
 
 const groupKeySelector = (item: ItemWithGroup) => item.parent;
 const groupLabelSelector = (item: ItemWithGroup) => item.parent;
+
+const chartMargins = { top: 16, left: 5, right: 5, bottom: 5 };
 
 interface Props {
     className?: string;
@@ -540,6 +541,7 @@ function Disaster(props: Props) {
                                 height={200}
                                 data={filteredAggregatedData}
                                 className={styles.chart}
+                                margin={chartMargins}
                             >
                                 <XAxis
                                     dataKey="year"
@@ -551,10 +553,10 @@ function Disaster(props: Props) {
                                 />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatterWithoutPrecision}
+                                    tickFormatter={formatNumber}
                                 />
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
                                 <Bar
@@ -571,7 +573,7 @@ function Disaster(props: Props) {
                                 className={styles.chart}
                             >
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
                                 <Pie

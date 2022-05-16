@@ -48,8 +48,7 @@ import {
     MultiResponse,
     add,
     useDownloading,
-    valueFormatter,
-    valueFormatterWithoutPrecision,
+    formatNumber,
     regions,
     regionMap,
     removeZero,
@@ -61,6 +60,17 @@ import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
+
+const conflictColorSchemes = [
+    'rgb(196, 56, 34)',
+    'rgb(222, 71, 38)',
+    'rgb(235, 99, 36)',
+    'rgb(239, 125, 0)',
+    'rgb(242, 179, 120)',
+    'rgb(247, 204, 166)',
+];
+
+const chartMargins = { top: 16, left: 5, right: 5, bottom: 5 };
 
 interface FilterFields {
     years: [number, number];
@@ -165,6 +175,9 @@ function Conflict(props: Props) {
         })).sort((a, b) => compareString(a.value, b.value));
     }, [response?.results]);
 
+    const multilines = finalFormValue.countries.length > 0
+        && finalFormValue.countries.length < 5;
+
     const {
         totalCount,
         noOfCountries,
@@ -172,6 +185,8 @@ function Conflict(props: Props) {
         noTotal,
         noAsOfEnd,
         filteredAggregatedData,
+        filteredAggregatedDataByCountry,
+        range,
     } = useMemo(() => {
         if (!response?.results) {
             return {
@@ -194,24 +209,21 @@ function Conflict(props: Props) {
                 finalFormValue.regions.length === 0
                 || regionCountries.indexOf(d.iso3) !== -1
             )
-
         )).map((d) => ({
             ...d,
             new_displacements: removeZero(d.new_displacements),
             stock_displacement: removeZero(d.stock_displacement),
         }));
-        const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
-        const dataTotalByYear = mapToList(dataByYear, (d, k) => (
-            ({
-                year: k,
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ),
-                totalStock: add(
-                    d.map((datum) => datum.stock_displacement).filter((datum) => isDefined(datum)),
-                ),
-            })
-        ));
+
+        const minYear = Math.min(
+            ...newFilteredData.map((item) => Number(item.year)),
+            currentYear,
+        );
+        const maxYear = Math.max(
+            ...newFilteredData.map((item) => Number(item.year)),
+            currentYear,
+        );
+
         const totalNewDisplacements = sum(
             newFilteredData.map((d) => d.new_displacements).filter(isDefined),
         );
@@ -220,13 +232,48 @@ function Conflict(props: Props) {
                 .filter((d) => Number(d.year) === finalFormValue.years[1])
                 .map((d) => d.stock_displacement).filter(isDefined),
         );
+
+        function aggregateByYear(data: typeof newFilteredData) {
+            const dataByYear = listToGroupList(data, (d) => d.year);
+            return mapToList(dataByYear, (d, k) => (
+                ({
+                    year: Number(k),
+                    total: add(
+                        d
+                            .map((datum) => datum.new_displacements)
+                            .filter((datum) => isDefined(datum)),
+                    ),
+                    totalStock: add(
+                        d
+                            .map((datum) => datum.stock_displacement)
+                            .filter((datum) => isDefined(datum)),
+                    ),
+                })
+            )).sort((foo, bar) => foo.year - bar.year);
+        }
+
+        const dataByCountry = listToGroupList(newFilteredData, (d) => d.iso3);
+        const dataTotalByCountry = mapToList(
+            dataByCountry,
+            (d, k) => ({
+                name: k,
+                data: aggregateByYear(d),
+            }),
+        );
+
+        console.log(newFilteredData, dataByCountry, dataTotalByCountry);
+
+        const dataTotalByYear = aggregateByYear(newFilteredData);
+
         return {
             filteredData: newFilteredData,
             noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
             totalCount: newFilteredData.length,
             noTotal: totalNewDisplacements,
             filteredAggregatedData: dataTotalByYear,
+            filteredAggregatedDataByCountry: dataTotalByCountry,
             noAsOfEnd: totalStock,
+            range: [minYear, maxYear],
         };
     }, [response?.results, finalFormValue]);
 
@@ -339,7 +386,9 @@ function Conflict(props: Props) {
         <div className={_cs(className, styles.conflict)}>
             {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
-                <h1 className={styles.heading}>IDMC Query Tool - Conflict and violence</h1>
+                <h1 className={styles.heading}>
+                    IDMC Query Tool - Conflict and violence
+                </h1>
                 <Button
                     className={styles.button}
                     name="back"
@@ -424,38 +473,57 @@ function Conflict(props: Props) {
                                 className={styles.chart}
                                 width={320}
                                 height={200}
-                                data={filteredAggregatedData}
+                                data={multilines ? undefined : filteredAggregatedData}
+                                margin={chartMargins}
                             >
-                                <XAxis
-                                    dataKey="year"
-                                    axisLine={false}
-                                />
                                 <CartesianGrid
                                     vertical={false}
                                     strokeDasharray="3 3"
                                 />
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                    type="number"
+                                    domain={range}
+                                />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatterWithoutPrecision}
+                                    tickFormatter={formatNumber}
                                 />
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
-                                <Line
-                                    dataKey="total"
-                                    name="Conflict internal displacements"
-                                    stroke="var(--color-conflict)"
-                                    strokeWidth={2}
-                                    connectNulls
-                                    dot
-                                />
+                                {multilines ? filteredAggregatedDataByCountry?.map((item, i) => (
+                                    <Line
+                                        key={item.name}
+                                        dataKey="total"
+                                        name={item.name}
+                                        data={item.data}
+                                        stroke={(
+                                            conflictColorSchemes[i % conflictColorSchemes.length]
+                                        )}
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot
+                                    />
+                                )) : (
+                                    <Line
+                                        dataKey="total"
+                                        name="Conflict internal displacements"
+                                        stroke="var(--color-conflict)"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot
+                                    />
+                                )}
                             </LineChart>
                             <BarChart
                                 className={styles.chart}
                                 width={320}
                                 height={200}
                                 data={filteredAggregatedData}
+                                margin={chartMargins}
                             >
                                 <XAxis
                                     dataKey="year"
@@ -467,10 +535,10 @@ function Conflict(props: Props) {
                                 />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatterWithoutPrecision}
+                                    tickFormatter={formatNumber}
                                 />
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
                                 <Bar
