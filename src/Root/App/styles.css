@@ -107,6 +107,48 @@
 
     --color-separator: rgba(0, 0, 0, .1);
 
-    --tui-color-accent: #0774e1;
+    --tui-color-accent: rgb(65, 131,196);
+    --tui-font-family-sans-serif: 'proxima-nova', sans-serif;
+    --tui-font-family-heading: 'freight-big-pro', sans-serif;
+
+    --tui-font-weight-light: 300;
+    --tui-font-weight-medium: 400;
+    --tui-font-weight-bold: 700;
+    --tui-font-weight-heading: 900;
+
+    --tui-font-size-extra-small: 0.7rem;
+    --tui-font-size-small: 0.8rem;
+    --tui-font-size-medium: 1rem;
+    --tui-font-size-large: 1.26rem;
+    --tui-font-size-extra-large: 1.6rem;
+    --tui-font-size-super-large: 2.2rem;
+    --tui-font-size-mega-large: 3rem;
+    --tui-font-size-ultra-large: 4rem;
+
+    --tui-color-primary: rgb(65, 131, 196);
+    --tui-color-accent: rgb(65, 131, 196);
+    --tui-color-brand: rgb(25, 50, 86);
+    --tui-color-brand-hover: #06179E;
+
+    --tui-color-text: rgb(100,99,99);
+    --tui-color-background: #eff4fa;
+
+    --color-foreground: #ffffff;
+    --color-background: #eff4fa;
+    --color-background-dark: #193256;
+    --color-text-on-dark: #ffffff;
+    --color-text: #333333;
+
+    --color-orange: rgb(239, 125, 0);
+    --color-blue: rgb(1, 142, 202);
+    --color-green: rgb(41, 181, 115);
+
+    --color-conflict: var(--color-orange);
+    --color-disaster: var(--color-blue);
+    --color-other: var(--color-green);
+
+    --width-page-max: 69rem;
+    --width-readable-content-max: 46rem;
+
 }
 

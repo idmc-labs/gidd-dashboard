@@ -33,13 +33,9 @@ import {
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
-import {
-    requiredCondition,
-    useForm,
-    ObjectSchema,
-} from '@togglecorp/toggle-form';
 
 import CustomBar from '#components/CurvedBar';
+import Header from '#components/Header';
 import {
     createTextColumn,
     createNumberColumn,
@@ -58,10 +54,12 @@ import {
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
+import SliderInput from '#components/SliderInput';
+import useInputState from '#hooks/useInputState';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
-import Slider from '../Slider';
+// import Slider from '../Slider';
 
 // NOTE: we only need 3 colors
 const conflictColorSchemes = [
@@ -74,31 +72,6 @@ const conflictColorSchemes = [
 ];
 
 const chartMargins = { top: 16, left: 16, right: 16, bottom: 5 };
-
-interface FilterFields {
-    years: [number, number];
-    regions: string[];
-    countries: string[];
-}
-
-type FormType = FilterFields;
-
-type FormSchema = ObjectSchema<FormType>
-type FormSchemaFields = ReturnType<FormSchema['fields']>;
-
-const schema: FormSchema = {
-    fields: (): FormSchemaFields => ({
-        years: [requiredCondition],
-        regions: [],
-        countries: [],
-    }),
-};
-
-const defaultFormValues: FormType = {
-    years: [2008, currentYear],
-    regions: [],
-    countries: [],
-};
 
 interface ConflictData {
     iso3: string;
@@ -115,7 +88,7 @@ function filterConflictData(
     data: ConflictData[],
     regionsFilter: string[],
     countries: string[],
-    years: [number, number],
+    years: number[],
 ) {
     const regionCountries = regionsFilter.map((r) => regionMap[r]).flat();
     return data.filter((d) => (
@@ -227,13 +200,18 @@ function Conflict(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const {
-        value,
-        onValueChange,
-    } = useForm(defaultFormValues, schema);
-
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+
+    const [regionsValue, setRegionsValue] = useInputState<string[]>([]);
+    const [countriesValue, setCountriesValue] = useInputState<string[]>([]);
+    const [years, setYears] = useState<number[]>([2008, currentYear]);
+
+    const value = useMemo(() => ({
+        regions: regionsValue,
+        countries: countriesValue,
+        years,
+    }), [regionsValue, countriesValue, years]);
 
     const finalFormValue = useDebouncedValue(value);
 
@@ -276,14 +254,16 @@ function Conflict(props: Props) {
     const multilines = finalFormValue.countries.length > 0
         && finalFormValue.countries.length <= 3;
 
-    const conflictResults = response?.results.filter(
-        (item) => (
-            // NOTE: we filter out data with empty stock
-            isDefined(item.stock_displacement)
-            // NOTE: we filter out data with empty or zero new_displacements
-            || (isDefined(item.new_displacements) && item.new_displacements !== 0)
-        ),
-    );
+    const conflictResults = useMemo(() => (
+        response?.results.filter(
+            (item) => (
+                // NOTE: we filter out data with empty stock
+                isDefined(item.stock_displacement)
+                // NOTE: we filter out data with empty or zero new_displacements
+                || (isDefined(item.new_displacements) && item.new_displacements !== 0)
+            ),
+        )
+    ), [response?.results]);
 
     const filteredData = useMemo(
         () => filterConflictData(
@@ -439,28 +419,52 @@ function Conflict(props: Props) {
             <div className={styles.content}>
                 {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.filters}>
-                    <MultiSelectInput<string, 'regions', Item, any>
-                        name="regions"
-                        className={styles.filter}
-                        label="Regions"
-                        options={regions}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.regions}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Regions"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="regions"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={regions}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={value.regions}
+                                onChange={setRegionsValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'countries', Item, any>
-                        name="countries"
-                        className={styles.filter}
-                        label="Countries and territories"
-                        options={countriesList}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.countries}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Countries and territories"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="countries"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={countriesList}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={value.countries}
+                                onChange={setCountriesValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
+                    <SliderInput
+                        className={styles.slider}
+                        min={2008}
+                        max={currentYear}
+                        step={1}
+                        minDistance={1}
+                        labelDescription={`${years[0]}-${years[1]}`}
+                        hideValues
+                        onChange={setYears}
+                        value={years}
+                    />
+                    {/*
                     <Slider
                         className={_cs(styles.slider, styles.filter)}
                         name="years"
@@ -470,6 +474,7 @@ function Conflict(props: Props) {
                         onChange={onValueChange}
                         value={value.years}
                     />
+                    */}
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>

@@ -53,6 +53,7 @@ import styles from './styles.css';
 const newDisplacementTooltip = 'Internal displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense, the number of internal displacements does not equal to the number of people displaced during the year.';
 const idpTooltip = `Total number of IDPs corresponds to the total number of people living in internal displacement as of 31 December ${currentYear}.`;
 const mapDisclaimer = 'The boundaries and the names shown and the designations used on this map do not imply official endorsement or acceptance by IDMC.';
+const dataDisclaimer = 'Due to rounding, some totals may not correspond with the sum of the separate figures.';
 
 interface DisplacementData {
     iso3: string;
@@ -199,7 +200,7 @@ function MapDashboard(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const sortState = useSortState();
+    const sortState = useSortState({ name: 'geo_name', direction: 'asc' });
     const { sorting } = sortState;
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
@@ -732,6 +733,9 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                 </div>
+                <p className={_cs(styles.disclaimer, styles.dataDisclaimer)}>
+                    {dataDisclaimer}
+                </p>
             </div>
             <div className={styles.downloadBox}>
                 <h3>

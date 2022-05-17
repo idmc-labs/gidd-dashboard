@@ -35,11 +35,6 @@ import {
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
-import {
-    requiredCondition,
-    useForm,
-    ObjectSchema,
-} from '@togglecorp/toggle-form';
 import { IoMdDownload } from 'react-icons/io';
 import useDebouncedValue from '#hooks/useDebouncedValue';
 
@@ -59,11 +54,13 @@ import {
     roundAndRemoveZero,
 } from '#utils/common';
 import { currentYear } from '#config/env';
+import SliderInput from '#components/SliderInput';
+import Header from '#components/Header';
+import useInputState from '#hooks/useInputState';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
-import Slider from '../Slider';
 
 // NOTE: we only need 3 colors
 const disasterColorSchemes = [
@@ -83,34 +80,6 @@ const colorScheme = [
     '#2cb7e1',
     '#5ed9ed',
 ];
-
-interface FilterFields {
-    years: [number, number];
-    regions: string[];
-    countries: string[];
-    disasterType: string[];
-}
-
-type FormType = FilterFields;
-
-type FormSchema = ObjectSchema<FormType>
-type FormSchemaFields = ReturnType<FormSchema['fields']>;
-
-const schema: FormSchema = {
-    fields: (): FormSchemaFields => ({
-        years: [requiredCondition],
-        regions: [],
-        countries: [],
-        disasterType: [],
-    }),
-};
-
-const defaultFormValues: FormType = {
-    years: [2008, currentYear],
-    regions: [],
-    countries: [],
-    disasterType: [],
-};
 
 interface DisasterData {
     key: string;
@@ -150,7 +119,7 @@ function filterDisasterData(
     data: DisasterData[],
     regionsFilter: string[],
     countries: string[],
-    years: [number, number],
+    years: number[],
     disasterType: string[],
 ) {
     const regionCountries = regionsFilter.map((r) => regionMap[r]).flat();
@@ -274,15 +243,24 @@ function Disaster(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const {
-        value,
-        onValueChange,
-    } = useForm(defaultFormValues, schema);
-
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+
+    const [regionsValue, setRegionsValue] = useInputState<string[]>([]);
+    const [countriesValue, setCountriesValue] = useInputState<string[]>([]);
+    const [disasterTypeValue, setDisasterTypeValue] = useInputState<string[]>([]);
+    const [years, setYears] = useState<number[]>([2008, currentYear]);
+
+    const value = useMemo(() => ({
+        regions: regionsValue,
+        countries: countriesValue,
+        disasterType: disasterTypeValue,
+        years,
+    }), [regionsValue, countriesValue, disasterTypeValue, years]);
+
     const sortState = useSortState();
     const { sorting } = sortState;
+
     const finalFormValue = useDebouncedValue(value);
 
     const handleBackButton = useCallback(() => {
@@ -338,15 +316,17 @@ function Disaster(props: Props) {
     const multilines = finalFormValue.countries.length > 0
         && finalFormValue.countries.length <= 3;
 
-    const disasterResults = response?.results.filter(
-        // NOTE: we filter out data with empty or zero new_displacements
-        (item) => isDefined(item.new_displacements) && item.new_displacements !== 0,
-    ).map((item) => ({
-        ...item,
-        // NOTE: we add a key because we do not have a key for disaster data
-        key: randomString(),
-        hazard_type: subTypeTransformer(item.hazard_type),
-    }));
+    const disasterResults = useMemo(() => (
+        response?.results.filter(
+            // NOTE: we filter out data with empty or zero new_displacements
+            (item) => isDefined(item.new_displacements) && item.new_displacements !== 0,
+        ).map((item) => ({
+            ...item,
+            // NOTE: we add a key because we do not have a key for disaster data
+            key: randomString(),
+            hazard_type: subTypeTransformer(item.hazard_type),
+        }))
+    ), [response?.results]);
 
     const filteredData = useMemo(
         () => filterDisasterData(
@@ -534,50 +514,70 @@ function Disaster(props: Props) {
             <div className={styles.content}>
                 {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.filters}>
-                    <MultiSelectInput
-                        name="regions"
-                        className={styles.filter}
-                        label="Regions"
-                        options={regions}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.regions}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Regions"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="regions"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={regions}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={regionsValue}
+                                onChange={setRegionsValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'countries', Item, any>
-                        className={styles.filter}
-                        keySelector={inputKeySelector}
-                        label="Countries and territories"
-                        labelSelector={inputValueSelector}
-                        name="countries"
-                        onChange={onValueChange}
-                        options={countriesList}
-                        optionsPopupClassName={styles.popup}
-                        value={value.countries}
+                    <Header
+                        heading="Countries and territories"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                name="countries"
+                                onChange={setCountriesValue}
+                                options={countriesList}
+                                optionsPopupClassName={styles.popup}
+                                value={countriesValue}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'disasterType', ItemWithGroup, any>
-                        className={styles.filter}
-                        keySelector={groupedItemKeySelector}
-                        label="Disaster Category"
-                        labelSelector={groupedItemLabelSelector}
-                        name="disasterType"
-                        onChange={onValueChange}
-                        options={subTypeList}
-                        optionsPopupClassName={styles.popup}
-                        value={value.disasterType}
-                        groupKeySelector={groupKeySelector}
-                        groupLabelSelector={groupLabelSelector}
-                        grouped
+                    <Header
+                        heading="Hazard Category"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                keySelector={groupedItemKeySelector}
+                                labelSelector={groupedItemLabelSelector}
+                                name="disasterType"
+                                onChange={setDisasterTypeValue}
+                                options={subTypeList}
+                                optionsPopupClassName={styles.popup}
+                                value={disasterTypeValue}
+                                groupKeySelector={groupKeySelector}
+                                groupLabelSelector={groupLabelSelector}
+                                grouped
+                            />
+                        )}
                     />
-                    <Slider
-                        className={_cs(styles.slider, styles.filter)}
-                        name="years"
+                    <SliderInput
+                        className={styles.slider}
                         min={2008}
                         max={currentYear}
                         step={1}
-                        onChange={onValueChange}
-                        value={value.years}
+                        minDistance={1}
+                        onChange={setYears}
+                        labelDescription={`${years[0]}-${years[1]}`}
+                        value={years}
+                        hideValues
                     />
                 </div>
                 <div className={styles.informationBar}>

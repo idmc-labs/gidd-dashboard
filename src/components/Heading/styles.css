@@ -1,0 +1,39 @@
+.heading {
+    position: relative;
+    margin: 0;
+    text-transform: unset; /* durpal has set text-transform on h2*/
+    line-height: 1.5; /* durpal has set line-height on h1..hn*/
+    color: var(--color-text);
+    font-family: var(--tui-font-family-heading);
+    font-weight: var(--tui-font-weight-heading);
+
+    &.extra-large {
+        font-size: var(--tui-font-size-mega-large);
+    }
+
+    &.large {
+        font-size: var(--tui-font-size-super-large);
+    }
+
+    &.medium {
+        font-size: var(--tui-font-size-extra-large);
+    }
+
+    &.small {
+        font-size: var(--tui-font-size-large);
+    }
+
+    &.extra-small {
+        font-family: var(--tui-font-family-sans-serif);
+        font-size: var(--tui-font-size-medium);
+    }
+
+    .border {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        background-color: var(--tui-color-accent);
+        width: 4ch;
+        height: var(--tui-width-separator-medium);
+    }
+}

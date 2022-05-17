@@ -34,10 +34,21 @@
             flex-shrink: 0;
             flex-wrap: wrap;
             border-bottom: var(--width-separator-thin) solid var(--color-separator);
-            padding: calc(var(--spacing-large) - var(--spacing-small));
+            padding: var(--spacing-large);
+            gap: var(--tui-spacing-medium);
 
-            .filter {
-                margin: var(--spacing-small);
+            .select-input {
+                .input-section {
+                    border: var(--tui-color-separator) solid var(--tui-width-separator-thin);
+                    border-radius: 0.25rem;
+                    box-shadow: none;
+                    background-color: #f5f8fb;
+                    padding: var(--tui-spacing-extra-small);
+
+                    &:focus-within {
+                        border-color: var(--tui-color-accent);
+                    }
+                }
             }
 
             .slider {
