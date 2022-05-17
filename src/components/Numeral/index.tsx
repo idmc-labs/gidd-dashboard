@@ -17,9 +17,9 @@ export function formattedNormalize(
     largeNumberForAbbreviation = 0,
 ) {
     const mapping = [
-        { suffix: 'B', value: 1000000000 },
-        { suffix: 'M', value: 1000000 },
-        { suffix: 'K', value: 1000 },
+        { suffix: 'b', value: 1000000000 },
+        { suffix: 'm', value: 1000000 },
+        { suffix: 'k', value: 1000 },
     ];
 
     const rule = mapping.find((n) => (num >= n.value && num >= largeNumberForAbbreviation));

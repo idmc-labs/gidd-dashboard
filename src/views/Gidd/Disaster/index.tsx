@@ -9,6 +9,8 @@ import {
     compareNumber,
     listToGroupList,
     mapToList,
+    mapToMap,
+    isNotDefined,
 } from '@togglecorp/fujs';
 import {
     PieChart,
@@ -49,14 +51,12 @@ import CustomBar from '#components/CurvedBar';
 import { useRequest } from '#utils/request';
 import {
     MultiResponse,
-    add,
     formatNumber,
     regions,
     useDownloading,
     regionMap,
     calcPieSizes,
-    removeZero,
-    round,
+    roundAndRemoveZero,
 } from '#utils/common';
 import { currentYear } from '#config/env';
 
@@ -64,6 +64,16 @@ import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 import Slider from '../Slider';
+
+// NOTE: we only need 3 colors
+const disasterColorSchemes = [
+    '#06169e',
+    // '#0738c8',
+    // '#0774e1',
+    '#018ec9',
+    '#2cb7e1',
+    // '#5ed9ed',
+];
 
 const colorScheme = [
     '#06169e',
@@ -126,6 +136,109 @@ interface DisasterData {
     hazard_sub_type: string;
 }
 
+function subTypeTransformer(subType = '') {
+    if (subType.toLowerCase() === 'wet mass movement') {
+        return 'Wet Mass Movement';
+    }
+    if (subType === 'Volcanic eruption' || subType === 'Volcanic activity') {
+        return 'Volcanic eruption';
+    }
+    return subType;
+}
+
+function filterDisasterData(
+    data: DisasterData[],
+    regionsFilter: string[],
+    countries: string[],
+    years: [number, number],
+    disasterType: string[],
+) {
+    const regionCountries = regionsFilter.map((r) => regionMap[r]).flat();
+    return data.filter((d) => (
+        (
+            Number(d.year) >= years[0]
+            && Number(d.year) <= years[1]
+        ) && (
+            countries.length === 0
+            || countries.indexOf(d.iso3) !== -1
+        ) && (
+            disasterType.length === 0
+            || disasterType.indexOf(subTypeTransformer(d.hazard_type)) !== -1
+        ) && (
+            regionsFilter.length === 0
+            || regionCountries.indexOf(d.iso3) !== -1
+        )
+    ));
+}
+
+function aggregateByYear(
+    // eslint-disable-next-line camelcase
+    lst: { year: number, iso3: string, value: number, hazard_type: string }[],
+) {
+    return mapToList(
+        listToGroupList(
+            lst,
+            (item) => item.year,
+        ),
+        (items, key): { year: number, total: number, [key: string]: number | undefined} => ({
+            year: Number(key),
+            total: sum(items.map((item) => item.value)),
+            ...mapToMap(
+                listToGroupList(
+                    items,
+                    (item) => item.iso3,
+                ),
+                (k) => k,
+                (itms) => sum(itms.map((itm) => itm.value)),
+            ),
+        }),
+    );
+}
+function aggregateByHazardType(
+    // eslint-disable-next-line camelcase
+    lst: { year: number, iso3: string, value: number, hazard_type: string }[],
+) {
+    return mapToList(
+        listToGroupList(
+            lst,
+            (item) => item.hazard_type,
+        ),
+        (items, key): { label: string, total: number } => ({
+            label: String(key),
+            total: sum(items.map((item) => item.value)),
+        }),
+    );
+}
+
+function processDisasterData(data: DisasterData[]) {
+    const newDisplacements = data.map((item) => {
+        if (isNotDefined(item.new_displacements)) {
+            return undefined;
+        }
+        return {
+            year: Number(item.year),
+            iso3: item.iso3,
+            value: item.new_displacements,
+            hazard_type: item.hazard_type,
+        };
+    }).filter(isDefined);
+
+    const totalNewDisplacements = sum(
+        newDisplacements
+            .map((d) => d.value)
+            .filter(isDefined),
+    );
+
+    const newDisplacementsByYear = aggregateByYear(newDisplacements);
+    const newDisplacementsByHazardType = aggregateByHazardType(newDisplacements);
+
+    return {
+        totalNewDisplacements,
+        newDisplacementsByYear,
+        newDisplacementsByHazardType,
+    };
+}
+
 const disasterItemKeySelector = (d: DisasterData) => d.key;
 interface Item {
     key: string;
@@ -139,16 +252,6 @@ interface ItemWithGroup {
     parent: string;
 }
 
-function subTypeTransformer(subType = '') {
-    if (subType.toLowerCase() === 'wet mass movement') {
-        return 'Wet Mass Movement';
-    }
-    if (subType === 'Volcanic eruption' || subType === 'Volcanic activity') {
-        return 'Volcanic eruption';
-    }
-    return subType;
-}
-
 const inputKeySelector = (d: Item) => d.key;
 const inputValueSelector = (d: Item) => d.value;
 
@@ -158,7 +261,7 @@ const groupedItemLabelSelector = (item: ItemWithGroup) => item.value;
 const groupKeySelector = (item: ItemWithGroup) => item.parent;
 const groupLabelSelector = (item: ItemWithGroup) => item.parent;
 
-const chartMargins = { top: 16, left: 5, right: 5, bottom: 5 };
+const chartMargins = { top: 16, left: 16, right: 16, bottom: 5 };
 
 interface Props {
     className?: string;
@@ -232,76 +335,53 @@ function Disaster(props: Props) {
         };
     }, [response?.results]);
 
+    const multilines = finalFormValue.countries.length > 0
+        && finalFormValue.countries.length <= 3;
+
+    const disasterResults = response?.results.filter(
+        // NOTE: we filter out data with empty or zero new_displacements
+        (item) => isDefined(item.new_displacements) && item.new_displacements !== 0,
+    ).map((item) => ({
+        ...item,
+        // NOTE: we add a key because we do not have a key for disaster data
+        key: randomString(),
+        hazard_type: subTypeTransformer(item.hazard_type),
+    }));
+
+    const filteredData = useMemo(
+        () => filterDisasterData(
+            disasterResults ?? [],
+            finalFormValue.regions,
+            finalFormValue.countries,
+            finalFormValue.years,
+            finalFormValue.disasterType,
+        ),
+        [disasterResults, finalFormValue],
+    );
+
+    const totalCount = filteredData?.length ?? 0;
+
+    const noOfCountries = useMemo(
+        () => unique(
+            filteredData ?? [],
+            (d) => d.iso3,
+        ).length,
+        [filteredData],
+    );
+
     const {
-        totalCount,
-        noOfCountries,
-        filteredData,
-        filteredAggregatedData,
-        filteredPieData,
-        noTotal,
-    } = useMemo(() => {
-        if (!response?.results) {
-            return {
-                filteredData: [],
-                filteredAggregatedData: [],
-                filteredPieData: [],
-                noOfCountries: 0,
-                totalCount: 0,
-                noTotal: 0,
-            };
-        }
-        const regionCountries = finalFormValue.regions.map((r) => regionMap[r]).flat();
-        const newFilteredData = response.results.filter((d) => (
-            (
-                Number(d.year) >= finalFormValue.years[0]
-                && Number(d.year) <= finalFormValue.years[1]
-            ) && (
-                finalFormValue.countries.length === 0
-                || finalFormValue.countries.indexOf(d.iso3) !== -1
-            ) && (
-                finalFormValue.disasterType.length === 0
-                || finalFormValue.disasterType.indexOf(subTypeTransformer(d.hazard_type)) !== -1
-            ) && (
-                finalFormValue.regions.length === 0
-                || regionCountries.indexOf(d.iso3) !== -1
-            ) && (isDefined(d.new_displacements) && d.new_displacements !== 0)
-        )).map((d) => ({
-            ...d,
-            key: randomString(),
-            hazard_type: subTypeTransformer(d.hazard_type),
-            new_displacements: removeZero(d.new_displacements),
-        }));
-        const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
-        const dataTotalByYear = mapToList(dataByYear, (d, k) => (
-            ({
-                year: k,
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ),
-            })
-        ));
-        const dataByHazardType = listToGroupList(newFilteredData, (d) => d.hazard_type);
-        const dataTotalByHazardType = mapToList(dataByHazardType, (d, k) => (
-            ({
-                label: String(k),
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ) ?? 0,
-            })
-        ));
-        const pies = calcPieSizes(dataTotalByHazardType);
-        const totalNewDisplacements = sum(
-            newFilteredData.map((d) => d.new_displacements).filter(isDefined),
-        );
-        return {
-            filteredData: newFilteredData,
-            noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
-            totalCount: newFilteredData.length,
-            noTotal: totalNewDisplacements,
-            filteredAggregatedData: dataTotalByYear,
-            filteredPieData: pies,
-        };
-    }, [response?.results, finalFormValue]);
+        totalNewDisplacements: noTotal,
+        newDisplacementsByYear: filteredAggregatedData,
+        newDisplacementsByHazardType,
+    } = useMemo(
+        () => processDisasterData(filteredData),
+        [filteredData],
+    );
+
+    const filteredPieData = useMemo(
+        () => calcPieSizes(newDisplacementsByHazardType),
+        [newDisplacementsByHazardType],
+    );
 
     const paginatedData = useMemo(() => {
         const finalPaginatedData = [...filteredData];
@@ -379,7 +459,7 @@ function Disaster(props: Props) {
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
                 'Disaster Internal Displacements',
-                (item) => round(item.new_displacements),
+                (item) => roundAndRemoveZero(item.new_displacements),
                 { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
@@ -440,7 +520,6 @@ function Disaster(props: Props) {
 
     return (
         <div className={_cs(className, styles.disaster)}>
-            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
                 <h1 className={styles.heading}>IDMC Query Tool - Disaster</h1>
                 <Button
@@ -453,6 +532,7 @@ function Disaster(props: Props) {
                 </Button>
             </header>
             <div className={styles.content}>
+                {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.filters}>
                     <MultiSelectInput
                         name="regions"
@@ -546,6 +626,9 @@ function Disaster(props: Props) {
                                 <XAxis
                                     dataKey="year"
                                     axisLine={false}
+                                    allowDecimals={false}
+                                    type="number"
+                                    domain={value.years}
                                 />
                                 <CartesianGrid
                                     vertical={false}
@@ -559,13 +642,28 @@ function Disaster(props: Props) {
                                     formatter={formatNumber}
                                 />
                                 <Legend />
-                                <Bar
-                                    dataKey="total"
-                                    fill="var(--color-disaster)"
-                                    name="Disaster internal displacements"
-                                    shape={<CustomBar />}
-                                    maxBarSize={16}
-                                />
+                                {multilines ? (
+                                    finalFormValue.countries.map((item, i) => (
+                                        <Bar
+                                            key={item}
+                                            dataKey={item}
+                                            name={item}
+                                            fill={disasterColorSchemes[
+                                                i % disasterColorSchemes.length
+                                            ]}
+                                            shape={<CustomBar />}
+                                            maxBarSize={16}
+                                        />
+                                    ))
+                                ) : (
+                                    <Bar
+                                        dataKey="total"
+                                        fill="var(--color-disaster)"
+                                        name="Disaster internal displacements"
+                                        shape={<CustomBar />}
+                                        maxBarSize={16}
+                                    />
+                                )}
                             </BarChart>
                             <PieChart
                                 width={280}

@@ -141,7 +141,7 @@ export function removeZero(data?: number) {
     return data === 0 ? undefined : data;
 }
 
-export function round(data?: number) {
+export function roundAndRemoveZero(data?: number) {
     if (isNotDefined(data) || data === 0) {
         return undefined;
     }
@@ -172,5 +172,5 @@ export function formatNumber(value: number) {
         value: number,
         valueSuffix: normalizeSuffix = '',
     } = output;
-    return `${number} ${normalizeSuffix}`;
+    return `${number}${normalizeSuffix}`;
 }
