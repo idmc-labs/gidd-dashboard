@@ -8,6 +8,12 @@
     }
 }
 
+.disclaimer {
+    margin: var(--spacing-small) 0;
+    color: var(--color-text-disabled);
+    font-style: italic;
+}
+
 .map-dashboard {
     display: flex;
     flex-direction: column;
@@ -49,6 +55,7 @@
 
     .top-content {
         display: flex;
+        position: relative;
         flex-direction: column;
         flex-grow: 1;
 
@@ -58,12 +65,6 @@
             .map-container {
                 width: 100%;
                 min-height: 60vh;
-            }
-
-            .disclaimer {
-                margin: var(--spacing-small) 0;
-                color: var(--color-text-disabled);
-                font-style: italic;
             }
         }
 
@@ -113,6 +114,11 @@
                     }
                 }
             }
+        }
+
+        .data-disclaimer {
+            margin: 0;
+            padding: 0 var(--spacing-large);
         }
     }
 

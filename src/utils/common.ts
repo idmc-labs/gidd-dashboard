@@ -4,22 +4,43 @@ import {
     isDefined,
     sum,
     listToMap,
-    Lang,
-    formattedNormalize,
     compareNumber,
 } from '@togglecorp/fujs';
+import sheet from 'xlsx';
 import {
     BasicEntity,
     EnumEntity,
 } from '#types';
+import {
+    formatNumberRaw,
+    getAutoPrecision,
+} from '#components/Numeral';
 
-export function valueFormatter(value: number) {
-    const {
-        number,
-        normalizeSuffix = '',
-    } = formattedNormalize(value, Lang.en);
+interface Row {
+    [key: string]: string | number | boolean | undefined | null;
+}
 
-    return `${number.toPrecision(3)} ${normalizeSuffix}`;
+export function useDownloading(name: string, valueCreator: () => Row[] | undefined | null) {
+    const handleClick = () => {
+        const value = valueCreator();
+        if (!value) {
+            return;
+        }
+        const ws = sheet.utils.json_to_sheet(value);
+
+        const wb = sheet.utils.book_new();
+        if (!wb.Props) {
+            wb.Props = {};
+        }
+        wb.Props.Title = 'Data';
+        sheet.utils.book_append_sheet(wb, ws);
+
+        const currentTimestamp = (new Date()).getTime();
+        const fileName = `${name}-${currentTimestamp}.xlsx`;
+
+        sheet.writeFile(wb, fileName);
+    };
+    return handleClick;
 }
 
 export const basicEntityKeySelector = (d: BasicEntity): string => d.id;
@@ -98,13 +119,13 @@ export const regionMap = listToMap(regions, (d) => d.key, (d) => d.countries);
 export function calcPieSizes(data: { label: string; total: number }[], noOfPies = 5) {
     const sortedData = [...data].sort((a, b) => compareNumber(a.total, b.total, -1));
 
-    const topData = sortedData;
+    const topData = [...sortedData];
     if (topData.length <= noOfPies) {
         return topData;
     }
     topData.length = noOfPies;
 
-    const otherData = sortedData;
+    const otherData = [...sortedData];
     otherData.splice(0, noOfPies);
 
     return ([
@@ -120,7 +141,7 @@ export function removeZero(data?: number) {
     return data === 0 ? undefined : data;
 }
 
-export function round(data?: number) {
+export function roundAndRemoveZero(data?: number) {
     if (isNotDefined(data) || data === 0) {
         return undefined;
     }
@@ -133,4 +154,23 @@ export function round(data?: number) {
         return sign * Math.round(absoluteData / 100) * 100;
     }
     return sign * Math.round(data / 1000) * 1000;
+}
+
+export function formatNumber(value: number) {
+    const output = formatNumberRaw(
+        value,
+        ',',
+        true,
+        getAutoPrecision(value, 100, 2),
+        0,
+    );
+
+    if (!output) {
+        return '';
+    }
+    const {
+        value: number,
+        valueSuffix: normalizeSuffix = '',
+    } = output;
+    return `${number}${normalizeSuffix}`;
 }

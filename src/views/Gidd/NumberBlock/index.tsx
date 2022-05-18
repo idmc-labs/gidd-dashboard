@@ -4,9 +4,10 @@ import {
     isNotDefined,
 } from '@togglecorp/fujs';
 import {
-    Numeral,
     useCounter,
 } from '@togglecorp/toggle-ui';
+
+import Numeral from '#components/Numeral';
 
 import styles from './styles.css';
 

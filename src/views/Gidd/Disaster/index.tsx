@@ -9,18 +9,20 @@ import {
     compareNumber,
     listToGroupList,
     mapToList,
+    mapToMap,
+    isNotDefined,
 } from '@togglecorp/fujs';
 import {
     PieChart,
     Pie,
     Cell,
-    BarChart,
+    LineChart,
+    Line,
     CartesianGrid,
     XAxis,
     YAxis,
     Tooltip,
     Legend,
-    Bar,
 } from 'recharts';
 import {
     MultiSelectInput,
@@ -30,15 +32,9 @@ import {
     createDateColumn,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
-import {
-    requiredCondition,
-    useForm,
-    ObjectSchema,
-} from '@togglecorp/toggle-form';
 import { IoMdDownload } from 'react-icons/io';
 import useDebouncedValue from '#hooks/useDebouncedValue';
 
@@ -46,60 +42,43 @@ import {
     createTextColumn,
     createNumberColumn,
 } from '#components/tableHelpers';
-import CustomBar from '#components/CurvedBar';
 import { useRequest } from '#utils/request';
 import {
     MultiResponse,
-    add,
-    valueFormatter,
+    formatNumber,
     regions,
+    useDownloading,
     regionMap,
     calcPieSizes,
-    removeZero,
-    round,
+    roundAndRemoveZero,
 } from '#utils/common';
+import { currentYear } from '#config/env';
+import SliderInput from '#components/SliderInput';
+import Header from '#components/Header';
+import useInputState from '#hooks/useInputState';
 
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
-import Slider from '../Slider';
 
-const colorScheme = [
-    '#06169e',
-    '#0738c8',
-    '#0774e1',
-    '#018ec9',
-    '#2cb7e1',
-    '#5ed9ed',
+// NOTE: we only need 3 colors
+const disasterColorSchemes = [
+    // 'rgb(6, 23, 158)',
+    // 'rgb(8, 56, 201)',
+    // 'rgb(8, 116, 226)',
+    'rgb(1, 142, 202)',
+    'rgb(45, 183, 226)',
+    'rgb(94, 217, 238)',
 ];
 
-interface FilterFields {
-    years: [number, number];
-    regions: string[];
-    countries: string[];
-    disasterType: string[];
-}
-
-type FormType = FilterFields;
-
-type FormSchema = ObjectSchema<FormType>
-type FormSchemaFields = ReturnType<FormSchema['fields']>;
-
-const schema: FormSchema = {
-    fields: (): FormSchemaFields => ({
-        years: [requiredCondition],
-        regions: [],
-        countries: [],
-        disasterType: [],
-    }),
-};
-
-const defaultFormValues: FormType = {
-    years: [2008, 2020],
-    regions: [],
-    countries: [],
-    disasterType: [],
-};
+const colorScheme = [
+    'rgb(6, 23, 158)',
+    'rgb(8, 56, 201)',
+    'rgb(8, 116, 226)',
+    'rgb(1, 142, 202)',
+    'rgb(45, 183, 226)',
+    'rgb(94, 217, 238)',
+];
 
 interface DisasterData {
     key: string;
@@ -125,6 +104,109 @@ interface DisasterData {
     hazard_sub_type: string;
 }
 
+function subTypeTransformer(subType = '') {
+    if (subType.toLowerCase() === 'wet mass movement') {
+        return 'Wet Mass Movement';
+    }
+    if (subType === 'Volcanic eruption' || subType === 'Volcanic activity') {
+        return 'Volcanic eruption';
+    }
+    return subType;
+}
+
+function filterDisasterData(
+    data: DisasterData[],
+    regionsFilter: string[],
+    countries: string[],
+    years: number[],
+    disasterType: string[],
+) {
+    const regionCountries = regionsFilter.map((r) => regionMap[r]).flat();
+    return data.filter((d) => (
+        (
+            Number(d.year) >= years[0]
+            && Number(d.year) <= years[1]
+        ) && (
+            countries.length === 0
+            || countries.indexOf(d.iso3) !== -1
+        ) && (
+            disasterType.length === 0
+            || disasterType.indexOf(subTypeTransformer(d.hazard_type)) !== -1
+        ) && (
+            regionsFilter.length === 0
+            || regionCountries.indexOf(d.iso3) !== -1
+        )
+    ));
+}
+
+function aggregateByYear(
+    // eslint-disable-next-line camelcase
+    lst: { year: number, iso3: string, value: number, hazard_type: string }[],
+) {
+    return mapToList(
+        listToGroupList(
+            lst,
+            (item) => item.year,
+        ),
+        (items, key): { year: number, total: number, [key: string]: number | undefined} => ({
+            year: Number(key),
+            total: sum(items.map((item) => item.value)),
+            ...mapToMap(
+                listToGroupList(
+                    items,
+                    (item) => item.iso3,
+                ),
+                (k) => k,
+                (itms) => sum(itms.map((itm) => itm.value)),
+            ),
+        }),
+    );
+}
+function aggregateByHazardType(
+    // eslint-disable-next-line camelcase
+    lst: { year: number, iso3: string, value: number, hazard_type: string }[],
+) {
+    return mapToList(
+        listToGroupList(
+            lst,
+            (item) => item.hazard_type,
+        ),
+        (items, key): { label: string, total: number } => ({
+            label: String(key),
+            total: sum(items.map((item) => item.value)),
+        }),
+    );
+}
+
+function processDisasterData(data: DisasterData[]) {
+    const newDisplacements = data.map((item) => {
+        if (isNotDefined(item.new_displacements)) {
+            return undefined;
+        }
+        return {
+            year: Number(item.year),
+            iso3: item.iso3,
+            value: item.new_displacements,
+            hazard_type: item.hazard_type,
+        };
+    }).filter(isDefined);
+
+    const totalNewDisplacements = sum(
+        newDisplacements
+            .map((d) => d.value)
+            .filter(isDefined),
+    );
+
+    const newDisplacementsByYear = aggregateByYear(newDisplacements);
+    const newDisplacementsByHazardType = aggregateByHazardType(newDisplacements);
+
+    return {
+        totalNewDisplacements,
+        newDisplacementsByYear,
+        newDisplacementsByHazardType,
+    };
+}
+
 const disasterItemKeySelector = (d: DisasterData) => d.key;
 interface Item {
     key: string;
@@ -138,16 +220,6 @@ interface ItemWithGroup {
     parent: string;
 }
 
-function subTypeTransformer(subType = '') {
-    if (subType.toLowerCase() === 'wet mass movement') {
-        return 'Wet Mass Movement';
-    }
-    if (subType === 'Volcanic eruption' || subType === 'Volcanic activity') {
-        return 'Volcanic eruption';
-    }
-    return subType;
-}
-
 const inputKeySelector = (d: Item) => d.key;
 const inputValueSelector = (d: Item) => d.value;
 
@@ -156,6 +228,8 @@ const groupedItemLabelSelector = (item: ItemWithGroup) => item.value;
 
 const groupKeySelector = (item: ItemWithGroup) => item.parent;
 const groupLabelSelector = (item: ItemWithGroup) => item.parent;
+
+const chartMargins = { top: 16, left: 16, right: 16, bottom: 5 };
 
 interface Props {
     className?: string;
@@ -168,15 +242,24 @@ function Disaster(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const {
-        value,
-        onValueChange,
-    } = useForm(defaultFormValues, schema);
-
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+
+    const [regionsValue, setRegionsValue] = useInputState<string[]>([]);
+    const [countriesValue, setCountriesValue] = useInputState<string[]>([]);
+    const [disasterTypeValue, setDisasterTypeValue] = useInputState<string[]>([]);
+    const [years, setYears] = useState<number[]>([2008, currentYear]);
+
+    const value = useMemo(() => ({
+        regions: regionsValue,
+        countries: countriesValue,
+        disasterType: disasterTypeValue,
+        years,
+    }), [regionsValue, countriesValue, disasterTypeValue, years]);
+
     const sortState = useSortState();
     const { sorting } = sortState;
+
     const finalFormValue = useDebouncedValue(value);
 
     const handleBackButton = useCallback(() => {
@@ -187,7 +270,7 @@ function Disaster(props: Props) {
         pending,
         response,
     } = useRequest<MultiResponse<DisasterData>>({
-        url: 'https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        url: `https://api.idmcdb.org/api/disaster_data?ci=IDMCWSHSOLO009&year=2008&year=${currentYear}&range=true`,
         /*
         query: {
             ci: 'IDMCWSHSOLO009',
@@ -229,76 +312,55 @@ function Disaster(props: Props) {
         };
     }, [response?.results]);
 
-    const {
-        totalCount,
-        noOfCountries,
-        filteredData,
-        filteredAggregatedData,
-        filteredPieData,
-        noTotal,
-    } = useMemo(() => {
-        if (!response?.results) {
-            return {
-                filteredData: [],
-                filteredAggregatedData: [],
-                filteredPieData: [],
-                noOfCountries: 0,
-                totalCount: 0,
-                noTotal: 0,
-            };
-        }
-        const regionCountries = finalFormValue.regions.map((r) => regionMap[r]).flat();
-        const newFilteredData = response.results.filter((d) => (
-            (
-                Number(d.year) >= finalFormValue.years[0]
-                && Number(d.year) <= finalFormValue.years[1]
-            ) && (
-                finalFormValue.countries.length === 0
-                || finalFormValue.countries.indexOf(d.iso3) !== -1
-            ) && (
-                finalFormValue.disasterType.length === 0
-                || finalFormValue.disasterType.indexOf(subTypeTransformer(d.hazard_type)) !== -1
-            ) && (
-                finalFormValue.regions.length === 0
-                || regionCountries.indexOf(d.iso3) !== -1
-            ) && (isDefined(d.new_displacements) && d.new_displacements !== 0)
-        )).map((d) => ({
-            ...d,
+    const multilines = finalFormValue.countries.length > 0
+        && finalFormValue.countries.length <= 3;
+
+    const disasterResults = useMemo(() => (
+        response?.results.filter(
+            // NOTE: we filter out data with empty or zero new_displacements
+            (item) => isDefined(item.new_displacements) && item.new_displacements !== 0,
+        ).map((item) => ({
+            ...item,
+            // NOTE: we add a key because we do not have a key for disaster data
             key: randomString(),
-            hazard_type: subTypeTransformer(d.hazard_type),
-            new_displacements: removeZero(d.new_displacements),
-        }));
-        const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
-        const dataTotalByYear = mapToList(dataByYear, (d, k) => (
-            ({
-                year: k,
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ),
-            })
-        ));
-        const dataByHazardType = listToGroupList(newFilteredData, (d) => d.hazard_type);
-        const dataTotalByHazardType = mapToList(dataByHazardType, (d, k) => (
-            ({
-                label: String(k),
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ) ?? 0,
-            })
-        ));
-        const pies = calcPieSizes(dataTotalByHazardType);
-        const totalNewDisplacements = sum(
-            newFilteredData.map((d) => d.new_displacements).filter(isDefined),
-        );
-        return {
-            filteredData: newFilteredData,
-            noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
-            totalCount: newFilteredData.length,
-            noTotal: totalNewDisplacements,
-            filteredAggregatedData: dataTotalByYear,
-            filteredPieData: pies,
-        };
-    }, [response?.results, finalFormValue]);
+            hazard_type: subTypeTransformer(item.hazard_type),
+        }))
+    ), [response?.results]);
+
+    const filteredData = useMemo(
+        () => filterDisasterData(
+            disasterResults ?? [],
+            finalFormValue.regions,
+            finalFormValue.countries,
+            finalFormValue.years,
+            finalFormValue.disasterType,
+        ),
+        [disasterResults, finalFormValue],
+    );
+
+    const totalCount = filteredData?.length ?? 0;
+
+    const noOfCountries = useMemo(
+        () => unique(
+            filteredData ?? [],
+            (d) => d.iso3,
+        ).length,
+        [filteredData],
+    );
+
+    const {
+        totalNewDisplacements: noTotal,
+        newDisplacementsByYear: filteredAggregatedData,
+        newDisplacementsByHazardType,
+    } = useMemo(
+        () => processDisasterData(filteredData),
+        [filteredData],
+    );
+
+    const filteredPieData = useMemo(
+        () => calcPieSizes(newDisplacementsByHazardType),
+        [newDisplacementsByHazardType],
+    );
 
     const paginatedData = useMemo(() => {
         const finalPaginatedData = [...filteredData];
@@ -375,8 +437,8 @@ function Disaster(props: Props) {
             ),
             createNumberColumn<DisasterData, string>(
                 'new_displacements',
-                'Disaster New Displacements',
-                (item) => round(item.new_displacements),
+                'Disaster Internal Displacements',
+                (item) => roundAndRemoveZero(item.new_displacements),
                 { sortable: true },
             ),
             createTextColumn<DisasterData, string>(
@@ -413,7 +475,7 @@ function Disaster(props: Props) {
         [columns],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             filteredData,
             columnsForDownload,
@@ -422,8 +484,8 @@ function Disaster(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'IDMC_GIDD_disasters_internal_displacement_data_2020',
-        getCsvValue,
+        `IDMC_GIDD_disasters_internal_displacement_data_${currentYear}`,
+        getDownloadValue,
     );
 
     const handleDownloadClick = useCallback(() => {
@@ -437,7 +499,6 @@ function Disaster(props: Props) {
 
     return (
         <div className={_cs(className, styles.disaster)}>
-            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
                 <h1 className={styles.heading}>IDMC Query Tool - Disaster</h1>
                 <Button
@@ -450,56 +511,77 @@ function Disaster(props: Props) {
                 </Button>
             </header>
             <div className={styles.content}>
+                {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.filters}>
-                    <MultiSelectInput
-                        name="regions"
-                        className={styles.filter}
-                        label="Regions"
-                        options={regions}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.regions}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Regions"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="regions"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={regions}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={regionsValue}
+                                onChange={setRegionsValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'countries', Item, any>
-                        className={styles.filter}
-                        keySelector={inputKeySelector}
-                        label="Countries and territories"
-                        labelSelector={inputValueSelector}
-                        name="countries"
-                        onChange={onValueChange}
-                        options={countriesList}
-                        optionsPopupClassName={styles.popup}
-                        value={value.countries}
+                    <Header
+                        heading="Countries and territories"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                name="countries"
+                                onChange={setCountriesValue}
+                                options={countriesList}
+                                optionsPopupClassName={styles.popup}
+                                value={countriesValue}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'disasterType', ItemWithGroup, any>
-                        className={styles.filter}
-                        keySelector={groupedItemKeySelector}
-                        label="Disaster Category"
-                        labelSelector={groupedItemLabelSelector}
-                        name="disasterType"
-                        onChange={onValueChange}
-                        options={subTypeList}
-                        optionsPopupClassName={styles.popup}
-                        value={value.disasterType}
-                        groupKeySelector={groupKeySelector}
-                        groupLabelSelector={groupLabelSelector}
-                        grouped
+                    <Header
+                        heading="Hazard Category"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                keySelector={groupedItemKeySelector}
+                                labelSelector={groupedItemLabelSelector}
+                                name="disasterType"
+                                onChange={setDisasterTypeValue}
+                                options={subTypeList}
+                                optionsPopupClassName={styles.popup}
+                                value={disasterTypeValue}
+                                groupKeySelector={groupKeySelector}
+                                groupLabelSelector={groupLabelSelector}
+                                grouped
+                            />
+                        )}
                     />
-                    <Slider
-                        className={_cs(styles.slider, styles.filter)}
-                        name="years"
+                    <SliderInput
+                        className={styles.slider}
                         min={2008}
-                        max={2020}
+                        max={currentYear}
                         step={1}
-                        onChange={onValueChange}
-                        value={value.years}
+                        minDistance={1}
+                        onChange={setYears}
+                        labelDescription={`${years[0]}-${years[1]}`}
+                        value={years}
+                        hideValues
                     />
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New Displacements from
+                        {`Internal Displacements from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -515,7 +597,7 @@ function Disaster(props: Props) {
                             <div className={styles.leftBottomContainer}>
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="New displacements"
+                                    label="Internal displacements"
                                     secondarySubLabel="Disasters"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={noTotal}
@@ -533,43 +615,69 @@ function Disaster(props: Props) {
                             </div>
                         </div>
                         <div className={styles.chartsContainer}>
-                            <BarChart
+                            <LineChart
                                 width={320}
                                 height={200}
                                 data={filteredAggregatedData}
                                 className={styles.chart}
+                                margin={chartMargins}
                             >
-                                <XAxis
-                                    dataKey="year"
-                                    axisLine={false}
-                                />
                                 <CartesianGrid
                                     vertical={false}
                                     strokeDasharray="3 3"
                                 />
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                    allowDecimals={false}
+                                    type="number"
+                                    domain={value.years}
+                                />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatter}
+                                    tickFormatter={formatNumber}
                                 />
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
-                                <Bar
-                                    dataKey="total"
-                                    fill="var(--color-disaster)"
-                                    name="Disaster new displacements"
-                                    shape={<CustomBar />}
-                                    maxBarSize={16}
-                                />
-                            </BarChart>
+                                {multilines ? (
+                                    finalFormValue.countries.map((item, i) => (
+                                        <Line
+                                            key={item}
+                                            dataKey={item}
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Disaster internal displacements'
+                                            }
+                                            strokeWidth={2}
+                                            connectNulls
+                                            dot
+                                            stroke={disasterColorSchemes[
+                                                i % disasterColorSchemes.length
+                                            ]}
+                                        />
+                                    ))
+                                ) : (
+                                    <Line
+                                        dataKey="total"
+                                        name="Disaster internal displacements"
+                                        stroke="var(--color-disaster)"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot
+                                    />
+                                )}
+                            </LineChart>
                             <PieChart
                                 width={280}
                                 height={200}
                                 className={styles.chart}
                             >
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
                                 <Pie

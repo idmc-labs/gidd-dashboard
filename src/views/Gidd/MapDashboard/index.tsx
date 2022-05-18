@@ -21,7 +21,6 @@ import {
     Pager,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
@@ -34,10 +33,12 @@ import Map, {
 } from '@togglecorp/re-map';
 
 import { useRequest } from '#utils/request';
+import { currentYear } from '#config/env';
 import {
     MultiResponse,
     add,
     removeZero,
+    useDownloading,
 } from '#utils/common';
 import {
     createTextColumn,
@@ -49,9 +50,10 @@ import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
 
-const newDisplacementTooltip = 'New displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense, the number of new displacements does not equal to the number of people displaced during the year.';
-const idpTooltip = 'Total number of IDPs corresponds to the total number of people living in internal displacement as of 31 December 2020.';
+const newDisplacementTooltip = 'Internal displacements corresponds to the estimated number of internal displacement movements to have taken place during the year. Figures include individuals who have been displaced more than once. In this sense, the number of internal displacements does not equal to the number of people displaced during the year.';
+const idpTooltip = `Total number of IDPs corresponds to the total number of people living in internal displacement as of 31 December ${currentYear}.`;
 const mapDisclaimer = 'The boundaries and the names shown and the designations used on this map do not imply official endorsement or acceptance by IDMC.';
+const dataDisclaimer = 'Due to rounding, some totals may not correspond with the sum of the separate figures.';
 
 interface DisplacementData {
     iso3: string;
@@ -148,7 +150,7 @@ function Tooltip({
             />
             <NumberBlock
                 className={styles.block}
-                label="Conflict and violence new displacements"
+                label="Conflict and violence internal displacements"
                 value={info?.conflict_new_displacements}
                 size="xsmall"
                 variant="conflict"
@@ -167,7 +169,7 @@ function Tooltip({
             />
             <NumberBlock
                 className={styles.block}
-                label="Disaster new displacements"
+                label="Disaster internal displacements"
                 value={info?.disaster_new_displacements}
                 variant="disaster"
                 size="xsmall"
@@ -183,7 +185,7 @@ const lightStyle = 'mapbox://styles/mapbox/light-v10';
 const displacementItemKeySelector = (d: DisplacementData) => d.iso3;
 
 const mapDashboardQuery = {
-    year: 2020,
+    year: currentYear,
     ci: 'IDMCWSHSOLO009',
 };
 
@@ -198,7 +200,7 @@ function MapDashboard(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const sortState = useSortState();
+    const sortState = useSortState({ name: 'geo_name', direction: 'asc' });
     const { sorting } = sortState;
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
@@ -351,7 +353,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'conflict_new_displacements',
-                'Conflict New Displacement',
+                'Conflict Internal Displacement',
                 (item) => item.conflict_new_displacements,
                 {
                     sortable: true,
@@ -369,7 +371,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_new_displacements',
-                'Disaster New Displacement',
+                'Disaster Internal Displacement',
                 (item) => item.disaster_new_displacements,
                 {
                     sortable: true,
@@ -387,7 +389,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'totalNew',
-                'Total New Displacement',
+                'Total Internal Displacement',
                 (item) => add([item.disaster_new_displacements, item.conflict_new_displacements]),
                 { sortable: true },
             ),
@@ -412,7 +414,7 @@ function MapDashboard(props: Props) {
             ...columns,
             createNumberColumn<DisplacementData, string>(
                 'conflict_new_displacements_raw',
-                'Conflict New Displacement Raw',
+                'Conflict Internal Displacement Raw',
                 (item) => item.conflict_new_displacements_raw,
                 {
                     sortable: true,
@@ -430,7 +432,7 @@ function MapDashboard(props: Props) {
             ),
             createNumberColumn<DisplacementData, string>(
                 'disaster_new_displacements_raw',
-                'Disaster New Displacement Raw',
+                'Disaster Internal Displacement Raw',
                 (item) => item.disaster_new_displacements_raw,
                 {
                     sortable: true,
@@ -504,7 +506,7 @@ function MapDashboard(props: Props) {
         [setHoveredRegionProperties],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             sortedData,
             columnsForDownload,
@@ -513,12 +515,12 @@ function MapDashboard(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'IDMC_GIDD_internal_displacement_data_2020',
-        getCsvValue,
+        `IDMC_GIDD_internal_displacement_data_${currentYear}`,
+        getDownloadValue,
     );
 
     const handleDisasterFileDownload = useCallback(() => {
-        window.open('https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_2020.xlsx');
+        window.open(`https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=${currentYear}&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_${currentYear}.xlsx`);
 
         setTimeout(() => {
             const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
@@ -530,7 +532,7 @@ function MapDashboard(props: Props) {
     }, []);
 
     const handleConflictFileDownload = useCallback(() => {
-        window.open('https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=2020&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_2020.xlsx');
+        window.open(`https://api.idmcdb.org/api/displacement_data/xlsx?year=2008&year=${currentYear}&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_2008_${currentYear}.xlsx`);
 
         setTimeout(() => {
             const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
@@ -552,9 +554,8 @@ function MapDashboard(props: Props) {
 
     return (
         <div className={_cs(className, styles.mapDashboard)}>
-            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
-                <h1 className={styles.heading}>2020 Internal Displacement</h1>
+                <h1 className={styles.heading}>{`${currentYear} Internal Displacement`}</h1>
                 <div className={styles.buttonContainer}>
                     <Button
                         name="conflict"
@@ -573,6 +574,7 @@ function MapDashboard(props: Props) {
                 </div>
             </header>
             <div className={styles.topContent}>
+                {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.leftContainer}>
                     <Map
                         mapStyle={lightStyle}
@@ -653,7 +655,7 @@ function MapDashboard(props: Props) {
                     <div className={styles.infoBox}>
                         <header className={styles.header}>
                             <h2 className={styles.heading}>
-                                New Displacements
+                                Internal Displacements
                                 <MdTooltip
                                     className={styles.tooltip}
                                     title={newDisplacementTooltip}
@@ -664,7 +666,7 @@ function MapDashboard(props: Props) {
                                     </p>
                                 </MdTooltip>
                             </h2>
-                            <span>in 2020</span>
+                            <span>{`in ${currentYear}`}</span>
                         </header>
                         <NumberBlock
                             label="Total"
@@ -705,7 +707,7 @@ function MapDashboard(props: Props) {
                                     </p>
                                 </MdTooltip>
                             </h2>
-                            <span>as of the end of 2020</span>
+                            <span>{`as of the end of ${currentYear}`}</span>
                         </header>
                         <NumberBlock
                             label="Total"
@@ -731,6 +733,9 @@ function MapDashboard(props: Props) {
                         </div>
                     </div>
                 </div>
+                <p className={_cs(styles.disclaimer, styles.dataDisclaimer)}>
+                    {dataDisclaimer}
+                </p>
             </div>
             <div className={styles.downloadBox}>
                 <h3>
@@ -743,7 +748,7 @@ function MapDashboard(props: Props) {
                 >
                     <AiOutlineFileExcel className={styles.icon} />
                     <div className={styles.text}>
-                        Conflict/violence - disasters 2008-2020 per year
+                        {`Conflict/violence - disasters 2008-${currentYear} per year`}
                     </div>
                 </RawButton>
                 <RawButton
@@ -754,7 +759,7 @@ function MapDashboard(props: Props) {
                 >
                     <AiOutlineFileExcel className={styles.icon} />
                     <div className={styles.text}>
-                        Disaster events 2008-2020 (new displacement) per hazard type
+                        {`Disaster events 2008-${currentYear}(internal displacement) per hazard type`}
                     </div>
                 </RawButton>
             </div>

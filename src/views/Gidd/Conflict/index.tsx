@@ -8,6 +8,8 @@ import {
     compareNumber,
     listToGroupList,
     mapToList,
+    mapToMap,
+    isNotDefined,
 } from '@togglecorp/fujs';
 import { IoMdDownload } from 'react-icons/io';
 import {
@@ -28,62 +30,48 @@ import {
     Pager,
     SortContext,
     useSortState,
-    useDownloading,
     convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
-import {
-    requiredCondition,
-    useForm,
-    ObjectSchema,
-} from '@togglecorp/toggle-form';
 
 import CustomBar from '#components/CurvedBar';
+import Header from '#components/Header';
 import {
     createTextColumn,
     createNumberColumn,
 } from '#components/tableHelpers';
 import { useRequest } from '#utils/request';
+import { currentYear } from '#config/env';
 import {
     MultiResponse,
-    add,
-    valueFormatter,
+    // add,
+    useDownloading,
+    formatNumber,
     regions,
     regionMap,
     removeZero,
-    round,
+    roundAndRemoveZero,
 } from '#utils/common';
 
 import useDebouncedValue from '#hooks/useDebouncedValue';
+import SliderInput from '#components/SliderInput';
+import useInputState from '#hooks/useInputState';
 import { PageType } from '..';
 import NumberBlock from '../NumberBlock';
 import styles from './styles.css';
-import Slider from '../Slider';
+// import Slider from '../Slider';
 
-interface FilterFields {
-    years: [number, number];
-    regions: string[];
-    countries: string[];
-}
+// NOTE: we only need 3 colors
+const conflictColorSchemes = [
+    // 'rgb(196, 56, 34)',
+    // 'rgb(222, 71, 38)',
+    // 'rgb(235, 99, 36)',
+    'rgb(239, 125, 0)',
+    'rgb(242, 179, 120)',
+    'rgb(247, 204, 166)',
+];
 
-type FormType = FilterFields;
-
-type FormSchema = ObjectSchema<FormType>
-type FormSchemaFields = ReturnType<FormSchema['fields']>;
-
-const schema: FormSchema = {
-    fields: (): FormSchemaFields => ({
-        years: [requiredCondition],
-        regions: [],
-        countries: [],
-    }),
-};
-
-const defaultFormValues: FormType = {
-    years: [2008, 2020],
-    regions: [],
-    countries: [],
-};
+const chartMargins = { top: 16, left: 16, right: 16, bottom: 5 };
 
 interface ConflictData {
     iso3: string;
@@ -94,6 +82,100 @@ interface ConflictData {
     stock_displacement?: number;
     // eslint-disable-next-line camelcase
     new_displacements?: number;
+}
+
+function filterConflictData(
+    data: ConflictData[],
+    regionsFilter: string[],
+    countries: string[],
+    years: number[],
+) {
+    const regionCountries = regionsFilter.map((r) => regionMap[r]).flat();
+    return data.filter((d) => (
+        (
+            Number(d.year) >= years[0]
+            && Number(d.year) <= years[1]
+        ) && (
+            countries.length === 0
+            || countries.indexOf(d.iso3) !== -1
+        ) && (
+            regionsFilter.length === 0
+            || regionCountries.indexOf(d.iso3) !== -1
+        )
+    )).map((d) => ({
+        ...d,
+        new_displacements: removeZero(d.new_displacements),
+        stock_displacement: removeZero(d.stock_displacement),
+    }));
+}
+
+function aggregateByYear(lst: { year: number, iso3: string, value: number}[]) {
+    return mapToList(
+        listToGroupList(
+            lst,
+            (item) => item.year,
+        ),
+        (items, key): { year: number, total: number, [key: string]: number | undefined} => ({
+            year: Number(key),
+            total: sum(items.map((item) => item.value)),
+            ...mapToMap(
+                listToGroupList(
+                    items,
+                    (item) => item.iso3,
+                ),
+                (k) => k,
+                (itms) => sum(itms.map((itm) => itm.value)),
+            ),
+        }),
+    );
+}
+
+// NOTE: we use this only after filtering the data
+function processConflictData(data: ConflictData[], reportingYear: number) {
+    const newDisplacements = data.map((item) => {
+        if (isNotDefined(item.new_displacements)) {
+            return undefined;
+        }
+        return {
+            year: Number(item.year),
+            iso3: item.iso3,
+            value: item.new_displacements,
+        };
+    }).filter(isDefined);
+    const idps = data.map((item) => {
+        if (isNotDefined(item.stock_displacement)) {
+            return undefined;
+        }
+        return {
+            year: Number(item.year),
+            iso3: item.iso3,
+            value: item.stock_displacement,
+        };
+    }).filter(isDefined);
+
+    const totalNewDisplacements = sum(
+        newDisplacements
+            .map((d) => d.value)
+            .filter(isDefined),
+    );
+    const totalIdps = sum(
+        idps
+            .filter((d) => Number(d.year) === reportingYear)
+            .map((d) => d.value)
+            .filter(isDefined),
+    );
+
+    const newDisplacementsByYear = aggregateByYear(newDisplacements);
+
+    const idpsByYear = aggregateByYear(idps);
+
+    return {
+        totalNewDisplacements,
+        totalIdps,
+
+        newDisplacementsByYear,
+        idpsByYear,
+    };
 }
 
 const conflictItemKeySelector = (d: ConflictData) => `${d.iso3}-${d.year}`;
@@ -118,13 +200,18 @@ function Conflict(props: Props) {
         onSelectedPageChange,
     } = props;
 
-    const {
-        value,
-        onValueChange,
-    } = useForm(defaultFormValues, schema);
-
     const [activePage, setActivePage] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
+
+    const [regionsValue, setRegionsValue] = useInputState<string[]>([]);
+    const [countriesValue, setCountriesValue] = useInputState<string[]>([]);
+    const [years, setYears] = useState<number[]>([2008, currentYear]);
+
+    const value = useMemo(() => ({
+        regions: regionsValue,
+        countries: countriesValue,
+        years,
+    }), [regionsValue, countriesValue, years]);
 
     const finalFormValue = useDebouncedValue(value);
 
@@ -139,7 +226,7 @@ function Conflict(props: Props) {
         pending,
         response,
     } = useRequest<MultiResponse<ConflictData>>({
-        url: 'https://api.idmcdb.org/api/conflict_data?ci=IDMCWSHSOLO009&year=2008&year=2020&range=true',
+        url: `https://api.idmcdb.org/api/conflict_data?ci=IDMCWSHSOLO009&year=2008&year=${currentYear}&range=true`,
         /*
         query: {
             ci: 'IDMCWSHSOLO009',
@@ -150,6 +237,7 @@ function Conflict(props: Props) {
         method: 'GET',
     });
 
+    // FIXME: why not make a mapping?
     const countriesList = useMemo(() => {
         if (!response?.results) {
             return [];
@@ -163,70 +251,50 @@ function Conflict(props: Props) {
         })).sort((a, b) => compareString(a.value, b.value));
     }, [response?.results]);
 
-    const {
-        totalCount,
-        noOfCountries,
-        filteredData,
-        noTotal,
-        noAsOfEnd,
-        filteredAggregatedData,
-    } = useMemo(() => {
-        if (!response?.results) {
-            return {
-                filteredData: [],
-                noOfCountries: 0,
-                totalCount: 0,
-                noTotal: 0,
-                noAsOfEnd: 0,
-            };
-        }
-        const regionCountries = finalFormValue.regions.map((r) => regionMap[r]).flat();
-        const newFilteredData = response.results.filter((d) => (
-            (
-                Number(d.year) >= finalFormValue.years[0]
-                && Number(d.year) <= finalFormValue.years[1]
-            ) && (
-                finalFormValue.countries.length === 0
-                || finalFormValue.countries.indexOf(d.iso3) !== -1
-            ) && (
-                finalFormValue.regions.length === 0
-                || regionCountries.indexOf(d.iso3) !== -1
-            )
+    const multilines = finalFormValue.countries.length > 0
+        && finalFormValue.countries.length <= 3;
 
-        )).map((d) => ({
-            ...d,
-            new_displacements: removeZero(d.new_displacements),
-            stock_displacement: removeZero(d.stock_displacement),
-        }));
-        const dataByYear = listToGroupList(newFilteredData, (d) => d.year);
-        const dataTotalByYear = mapToList(dataByYear, (d, k) => (
-            ({
-                year: k,
-                total: add(
-                    d.map((datum) => datum.new_displacements).filter((datum) => isDefined(datum)),
-                ),
-                totalStock: add(
-                    d.map((datum) => datum.stock_displacement).filter((datum) => isDefined(datum)),
-                ),
-            })
-        ));
-        const totalNewDisplacements = sum(
-            newFilteredData.map((d) => d.new_displacements).filter(isDefined),
-        );
-        const totalStock = sum(
-            newFilteredData
-                .filter((d) => Number(d.year) === finalFormValue.years[1])
-                .map((d) => d.stock_displacement).filter(isDefined),
-        );
-        return {
-            filteredData: newFilteredData,
-            noOfCountries: unique(newFilteredData, (d) => d.iso3).length,
-            totalCount: newFilteredData.length,
-            noTotal: totalNewDisplacements,
-            filteredAggregatedData: dataTotalByYear,
-            noAsOfEnd: totalStock,
-        };
-    }, [response?.results, finalFormValue]);
+    const conflictResults = useMemo(() => (
+        response?.results.filter(
+            (item) => (
+                // NOTE: we filter out data with empty stock
+                isDefined(item.stock_displacement)
+                // NOTE: we filter out data with empty or zero new_displacements
+                || (isDefined(item.new_displacements) && item.new_displacements !== 0)
+            ),
+        )
+    ), [response?.results]);
+
+    const filteredData = useMemo(
+        () => filterConflictData(
+            conflictResults ?? [],
+            finalFormValue.regions,
+            finalFormValue.countries,
+            finalFormValue.years,
+        ),
+        [finalFormValue, conflictResults],
+    );
+
+    const totalCount = filteredData.length;
+
+    const noOfCountries = useMemo(
+        () => unique(
+            filteredData ?? [],
+            (d) => d.iso3,
+        ).length,
+        [filteredData],
+    );
+
+    const {
+        totalNewDisplacements: noTotal,
+        totalIdps: noAsOfEnd,
+
+        newDisplacementsByYear,
+        idpsByYear,
+    } = useMemo(
+        () => processConflictData(filteredData, finalFormValue.years[1]),
+        [filteredData, finalFormValue.years],
+    );
 
     const paginatedData = useMemo(() => {
         const finalPaginatedData = [...filteredData];
@@ -281,15 +349,15 @@ function Conflict(props: Props) {
             createNumberColumn<ConflictData, string>(
                 'stock_displacement',
                 'Total number of IDPs',
-                (item) => round(item.stock_displacement),
+                (item) => roundAndRemoveZero(item.stock_displacement),
                 {
                     sortable: true,
                 },
             ),
             createNumberColumn<ConflictData, string>(
                 'new_displacements',
-                'Conflict New Displacements',
-                (item) => round(item.new_displacements),
+                'Conflict Internal Displacements',
+                (item) => roundAndRemoveZero(item.new_displacements),
                 {
                     sortable: true,
                 },
@@ -311,7 +379,7 @@ function Conflict(props: Props) {
         [columns],
     );
 
-    const getCsvValue = useCallback(
+    const getDownloadValue = useCallback(
         () => convertTableData(
             filteredData,
             columnsForDownload,
@@ -320,8 +388,8 @@ function Conflict(props: Props) {
     );
 
     const handleDownload = useDownloading(
-        'IDMC_GIDD_conflict_internal_displacement_data_2020',
-        getCsvValue,
+        `IDMC_GIDD_conflict_internal_displacement_data_${currentYear}`,
+        getDownloadValue,
     );
 
     const handleDownloadClick = useCallback(() => {
@@ -335,9 +403,10 @@ function Conflict(props: Props) {
 
     return (
         <div className={_cs(className, styles.conflict)}>
-            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
-                <h1 className={styles.heading}>IDMC Query Tool - Conflict and violence</h1>
+                <h1 className={styles.heading}>
+                    IDMC Query Tool - Conflict and violence
+                </h1>
                 <Button
                     className={styles.button}
                     name="back"
@@ -348,42 +417,68 @@ function Conflict(props: Props) {
                 </Button>
             </header>
             <div className={styles.content}>
+                {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.filters}>
-                    <MultiSelectInput<string, 'regions', Item, any>
-                        name="regions"
-                        className={styles.filter}
-                        label="Regions"
-                        options={regions}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.regions}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Regions"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="regions"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={regions}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={value.regions}
+                                onChange={setRegionsValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
-                    <MultiSelectInput<string, 'countries', Item, any>
-                        name="countries"
-                        className={styles.filter}
-                        label="Countries and territories"
-                        options={countriesList}
-                        keySelector={inputKeySelector}
-                        labelSelector={inputValueSelector}
-                        value={value.countries}
-                        onChange={onValueChange}
-                        optionsPopupClassName={styles.popup}
+                    <Header
+                        heading="Countries and territories"
+                        headingSize="extraSmall"
+                        description={(
+                            <MultiSelectInput
+                                name="countries"
+                                className={styles.selectInput}
+                                inputSectionClassName={styles.inputSection}
+                                options={countriesList}
+                                keySelector={inputKeySelector}
+                                labelSelector={inputValueSelector}
+                                value={value.countries}
+                                onChange={setCountriesValue}
+                                optionsPopupClassName={styles.popup}
+                            />
+                        )}
                     />
+                    <SliderInput
+                        className={styles.slider}
+                        min={2008}
+                        max={currentYear}
+                        step={1}
+                        minDistance={1}
+                        labelDescription={`${years[0]}-${years[1]}`}
+                        hideValues
+                        onChange={setYears}
+                        value={years}
+                    />
+                    {/*
                     <Slider
                         className={_cs(styles.slider, styles.filter)}
                         name="years"
                         min={2008}
-                        max={2020}
+                        max={currentYear}
                         step={1}
                         onChange={onValueChange}
                         value={value.years}
                     />
+                    */}
                 </div>
                 <div className={styles.informationBar}>
                     <h2 className={styles.infoHeading}>
-                        {`New displacements and total number of IDPs from
+                        {`Internal displacements and total number of IDPs from
                             ${finalFormValue.years[0]} to ${finalFormValue.years[1]}
                         `}
                     </h2>
@@ -399,7 +494,7 @@ function Conflict(props: Props) {
                             <div className={styles.leftBottomContainer}>
                                 <NumberBlock
                                     className={styles.numberBlock}
-                                    label="New displacements"
+                                    label="Internal displacements"
                                     secondarySubLabel="Conflict and violence"
                                     subLabel={`${finalFormValue.years[0]} - ${finalFormValue.years[1]}`}
                                     value={noTotal}
@@ -418,68 +513,116 @@ function Conflict(props: Props) {
                             </div>
                         </div>
                         <div className={styles.chartsContainer}>
-                            <BarChart
-                                className={styles.chart}
-                                width={320}
-                                height={200}
-                                data={filteredAggregatedData}
-                            >
-                                <XAxis
-                                    dataKey="year"
-                                    axisLine={false}
-                                />
-                                <CartesianGrid
-                                    vertical={false}
-                                    strokeDasharray="3 3"
-                                />
-                                <YAxis
-                                    axisLine={false}
-                                    tickFormatter={valueFormatter}
-                                />
-                                <Tooltip
-                                    formatter={valueFormatter}
-                                />
-                                <Legend />
-                                <Bar
-                                    dataKey="total"
-                                    fill="var(--color-conflict)"
-                                    name="Conflict new displacements"
-                                    shape={<CustomBar />}
-                                    maxBarSize={16}
-                                />
-                            </BarChart>
                             <LineChart
                                 className={styles.chart}
                                 width={320}
                                 height={200}
-                                data={filteredAggregatedData}
+                                data={newDisplacementsByYear}
+                                margin={chartMargins}
                             >
-                                <XAxis
-                                    dataKey="year"
-                                    axisLine={false}
-                                />
                                 <CartesianGrid
                                     vertical={false}
                                     strokeDasharray="3 3"
                                 />
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                    allowDecimals={false}
+                                    type="number"
+                                    domain={value.years}
+                                />
                                 <YAxis
                                     axisLine={false}
-                                    tickFormatter={valueFormatter}
+                                    tickFormatter={formatNumber}
                                 />
                                 <Tooltip
-                                    formatter={valueFormatter}
+                                    formatter={formatNumber}
                                 />
                                 <Legend />
-                                <Line
-                                    dataKey="totalStock"
-                                    name="Conflict total number of IDPs"
-                                    key="totalStock"
-                                    stroke="var(--color-conflict)"
-                                    strokeWidth={2}
-                                    connectNulls
-                                    dot
-                                />
+                                {multilines ? (
+                                    finalFormValue.countries.map((item, i) => (
+                                        <Line
+                                            key={item}
+                                            dataKey={item}
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Conflict internal displacements'
+                                            }
+                                            strokeWidth={2}
+                                            connectNulls
+                                            dot
+                                            stroke={conflictColorSchemes[
+                                                i % conflictColorSchemes.length
+                                            ]}
+                                        />
+                                    ))
+                                ) : (
+                                    <Line
+                                        dataKey="total"
+                                        name="Conflict internal displacements"
+                                        stroke="var(--color-conflict)"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot
+                                    />
+                                )}
                             </LineChart>
+                            <BarChart
+                                className={styles.chart}
+                                width={320}
+                                height={200}
+                                data={idpsByYear}
+                                margin={chartMargins}
+                            >
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
+                                <XAxis
+                                    dataKey="year"
+                                    axisLine={false}
+                                    allowDecimals={false}
+                                    type="number"
+                                    domain={value.years}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickFormatter={formatNumber}
+                                />
+                                <Tooltip
+                                    formatter={formatNumber}
+                                />
+                                <Legend />
+                                {multilines ? (
+                                    finalFormValue.countries.map((item, i) => (
+                                        <Bar
+                                            key={item}
+                                            dataKey={item}
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Conflict total number of IDPs'
+                                            }
+                                            fill={conflictColorSchemes[
+                                                i % conflictColorSchemes.length
+                                            ]}
+                                            shape={<CustomBar />}
+                                            maxBarSize={6}
+                                        />
+                                    ))
+                                ) : (
+                                    <Bar
+                                        dataKey="total"
+                                        name="Conflict total number of IDPs"
+                                        fill="var(--color-conflict)"
+                                        shape={<CustomBar />}
+                                        maxBarSize={6}
+                                    />
+                                )}
+                            </BarChart>
                         </div>
                     </div>
                 </div>
