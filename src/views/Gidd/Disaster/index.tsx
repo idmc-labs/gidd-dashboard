@@ -16,13 +16,13 @@ import {
     PieChart,
     Pie,
     Cell,
-    BarChart,
+    LineChart,
+    Line,
     CartesianGrid,
     XAxis,
     YAxis,
     Tooltip,
     Legend,
-    Bar,
 } from 'recharts';
 import {
     MultiSelectInput,
@@ -42,7 +42,6 @@ import {
     createTextColumn,
     createNumberColumn,
 } from '#components/tableHelpers';
-import CustomBar from '#components/CurvedBar';
 import { useRequest } from '#utils/request';
 import {
     MultiResponse,
@@ -64,21 +63,21 @@ import styles from './styles.css';
 
 // NOTE: we only need 3 colors
 const disasterColorSchemes = [
-    '#06169e',
-    // '#0738c8',
-    // '#0774e1',
-    '#018ec9',
-    '#2cb7e1',
-    // '#5ed9ed',
+    // 'rgb(6, 23, 158)',
+    // 'rgb(8, 56, 201)',
+    // 'rgb(8, 116, 226)',
+    'rgb(1, 142, 202)',
+    'rgb(45, 183, 226)',
+    'rgb(94, 217, 238)',
 ];
 
 const colorScheme = [
-    '#06169e',
-    '#0738c8',
-    '#0774e1',
-    '#018ec9',
-    '#2cb7e1',
-    '#5ed9ed',
+    'rgb(6, 23, 158)',
+    'rgb(8, 56, 201)',
+    'rgb(8, 116, 226)',
+    'rgb(1, 142, 202)',
+    'rgb(45, 183, 226)',
+    'rgb(94, 217, 238)',
 ];
 
 interface DisasterData {
@@ -616,23 +615,23 @@ function Disaster(props: Props) {
                             </div>
                         </div>
                         <div className={styles.chartsContainer}>
-                            <BarChart
+                            <LineChart
                                 width={320}
                                 height={200}
                                 data={filteredAggregatedData}
                                 className={styles.chart}
                                 margin={chartMargins}
                             >
+                                <CartesianGrid
+                                    vertical={false}
+                                    strokeDasharray="3 3"
+                                />
                                 <XAxis
                                     dataKey="year"
                                     axisLine={false}
                                     allowDecimals={false}
                                     type="number"
                                     domain={value.years}
-                                />
-                                <CartesianGrid
-                                    vertical={false}
-                                    strokeDasharray="3 3"
                                 />
                                 <YAxis
                                     axisLine={false}
@@ -644,27 +643,34 @@ function Disaster(props: Props) {
                                 <Legend />
                                 {multilines ? (
                                     finalFormValue.countries.map((item, i) => (
-                                        <Bar
+                                        <Line
                                             key={item}
                                             dataKey={item}
-                                            name={item}
-                                            fill={disasterColorSchemes[
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Disaster internal displacements'
+                                            }
+                                            strokeWidth={2}
+                                            connectNulls
+                                            dot
+                                            stroke={disasterColorSchemes[
                                                 i % disasterColorSchemes.length
                                             ]}
-                                            shape={<CustomBar />}
-                                            maxBarSize={16}
                                         />
                                     ))
                                 ) : (
-                                    <Bar
+                                    <Line
                                         dataKey="total"
-                                        fill="var(--color-disaster)"
                                         name="Disaster internal displacements"
-                                        shape={<CustomBar />}
-                                        maxBarSize={16}
+                                        stroke="var(--color-disaster)"
+                                        strokeWidth={2}
+                                        connectNulls
+                                        dot
                                     />
                                 )}
-                            </BarChart>
+                            </LineChart>
                             <PieChart
                                 width={280}
                                 height={200}

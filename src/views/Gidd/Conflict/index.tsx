@@ -63,12 +63,12 @@ import styles from './styles.css';
 
 // NOTE: we only need 3 colors
 const conflictColorSchemes = [
-    'rgb(196, 56, 34)',
+    // 'rgb(196, 56, 34)',
     // 'rgb(222, 71, 38)',
     // 'rgb(235, 99, 36)',
     'rgb(239, 125, 0)',
     'rgb(242, 179, 120)',
-    // 'rgb(247, 204, 166)',
+    'rgb(247, 204, 166)',
 ];
 
 const chartMargins = { top: 16, left: 16, right: 16, bottom: 5 };
@@ -544,7 +544,12 @@ function Conflict(props: Props) {
                                         <Line
                                             key={item}
                                             dataKey={item}
-                                            name={item}
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Conflict internal displacements'
+                                            }
                                             strokeWidth={2}
                                             connectNulls
                                             dot
@@ -595,12 +600,17 @@ function Conflict(props: Props) {
                                         <Bar
                                             key={item}
                                             dataKey={item}
-                                            name={item}
+                                            name={
+                                                finalFormValue.countries.length > 1
+                                                    ? countriesList.find(
+                                                        (c) => c.key === item)?.value || item
+                                                    : 'Conflict total number of IDPs'
+                                            }
                                             fill={conflictColorSchemes[
                                                 i % conflictColorSchemes.length
                                             ]}
                                             shape={<CustomBar />}
-                                            maxBarSize={16}
+                                            maxBarSize={6}
                                         />
                                     ))
                                 ) : (
@@ -609,7 +619,7 @@ function Conflict(props: Props) {
                                         name="Conflict total number of IDPs"
                                         fill="var(--color-conflict)"
                                         shape={<CustomBar />}
-                                        maxBarSize={16}
+                                        maxBarSize={6}
                                     />
                                 )}
                             </BarChart>

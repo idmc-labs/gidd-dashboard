@@ -35,8 +35,8 @@
 }
 
 :root {
-    --color-conflict: #ed7e23;
-    --color-disaster: #078ec9;
+    --color-conflict: rgb(239, 125, 0);
+    --color-disaster: rgb(1, 142, 202);
 
     /* SPACING */
     --spacing-super-small: 1px;

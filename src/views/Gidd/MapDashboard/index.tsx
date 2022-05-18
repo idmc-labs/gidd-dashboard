@@ -554,7 +554,6 @@ function MapDashboard(props: Props) {
 
     return (
         <div className={_cs(className, styles.mapDashboard)}>
-            {pending && <PendingMessage className={styles.pending} />}
             <header className={styles.header}>
                 <h1 className={styles.heading}>{`${currentYear} Internal Displacement`}</h1>
                 <div className={styles.buttonContainer}>
@@ -575,6 +574,7 @@ function MapDashboard(props: Props) {
                 </div>
             </header>
             <div className={styles.topContent}>
+                {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.leftContainer}>
                     <Map
                         mapStyle={lightStyle}
