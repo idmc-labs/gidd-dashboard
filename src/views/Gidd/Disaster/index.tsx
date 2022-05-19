@@ -490,7 +490,7 @@ function Disaster(props: Props) {
 
     const handleDownloadClick = useCallback(() => {
         handleDownload();
-        const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
+        const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
         const a = document.createElement('a');
         a.href = url;
         a.download = 'ReadMeFile_GIDD.docx';
