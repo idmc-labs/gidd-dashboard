@@ -21,7 +21,6 @@ import {
     Pager,
     SortContext,
     useSortState,
-    convertTableData,
     PendingMessage,
 } from '@togglecorp/toggle-ui';
 
@@ -38,7 +37,6 @@ import {
     MultiResponse,
     add,
     removeZero,
-    useDownloading,
 } from '#utils/common';
 import {
     createTextColumn,
@@ -270,12 +268,10 @@ function MapDashboard(props: Props) {
 
     const {
         paginatedData,
-        sortedData,
     } = useMemo(() => {
         if (!response?.results) {
             return {
                 paginatedData: [],
-                sortedData: [],
             };
         }
         const finalSortedData = response.results.map((d) => ({
@@ -329,7 +325,6 @@ function MapDashboard(props: Props) {
         finalPaginatedData.length = pageSize;
         return {
             paginatedData: finalPaginatedData,
-            sortedData: finalSortedData,
         };
     }, [sorting, activePage, pageSize, response?.results]);
 
@@ -403,55 +398,6 @@ function MapDashboard(props: Props) {
         [],
     );
 
-    const columnsForDownload = useMemo(
-        () => ([
-            createTextColumn<DisplacementData, string>(
-                'iso3',
-                'ISO3',
-                (item) => item.iso3,
-                { sortable: true },
-            ),
-            ...columns,
-            createNumberColumn<DisplacementData, string>(
-                'conflict_new_displacements_raw',
-                'Conflict Internal Displacement Raw',
-                (item) => item.conflict_new_displacements_raw,
-                {
-                    sortable: true,
-                    variant: 'conflict',
-                },
-            ),
-            createNumberColumn<DisplacementData, string>(
-                'conflict_stock_displacement_raw',
-                'Conflict Total number of IDPs Raw',
-                (item) => item.conflict_stock_displacement_raw,
-                {
-                    sortable: true,
-                    variant: 'conflict',
-                },
-            ),
-            createNumberColumn<DisplacementData, string>(
-                'disaster_new_displacements_raw',
-                'Disaster Internal Displacement Raw',
-                (item) => item.disaster_new_displacements_raw,
-                {
-                    sortable: true,
-                    variant: 'disaster',
-                },
-            ),
-            createNumberColumn<DisplacementData, string>(
-                'disaster_stock_displacement_raw',
-                'Disaster Total number of IDPs Raw',
-                (item) => item.disaster_stock_displacement_raw,
-                {
-                    sortable: true,
-                    variant: 'disaster',
-                },
-            ),
-        ]),
-        [columns],
-    );
-
     const handleConflictClick = useCallback(() => {
         onSelectedPageChange('conflict');
     }, [onSelectedPageChange]);
@@ -506,19 +452,6 @@ function MapDashboard(props: Props) {
         [setHoveredRegionProperties],
     );
 
-    const getDownloadValue = useCallback(
-        () => convertTableData(
-            sortedData,
-            columnsForDownload,
-        ),
-        [sortedData, columnsForDownload],
-    );
-
-    const handleDownload = useDownloading(
-        `IDMC_GIDD_internal_displacement_data_${currentYear}`,
-        getDownloadValue,
-    );
-
     const handleDisasterFileDownload = useCallback(() => {
         window.open(`https://api.idmcdb.org/api/disaster_data/xlsx?year=2008&year=${currentYear}&range=true&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Disasters_Events_2008_${currentYear}.xlsx`);
 
@@ -544,13 +477,16 @@ function MapDashboard(props: Props) {
     }, []);
 
     const handleDownloadClick = useCallback(() => {
-        handleDownload();
-        const url = 'https://idmc-labs.github.io/gidd-dashboard/assets/ReadMeFile_GIDD.docx';
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ReadMeFile_GIDD.docx';
-        a.click();
-    }, [handleDownload]);
+        window.open(`https://api.idmcdb.org/api/displacement_data/xlsx?year=${currentYear}&ci=IDMCWSHSOLO009&filename=IDMC_Internal_Displacement_Conflict-Violence_Disasters_${currentYear}.xlsx`);
+
+        setTimeout(() => {
+            const url = 'https://gidd.idmcdb.org/assets/ReadMeFile_GIDD.docx';
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ReadMeFile_GIDD.docx';
+            a.click();
+        }, 1000);
+    }, []);
 
     return (
         <div className={_cs(className, styles.mapDashboard)}>
