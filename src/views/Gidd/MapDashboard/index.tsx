@@ -178,7 +178,7 @@ function Tooltip({
     );
 }
 
-const lightStyle = 'mapbox://styles/mapbox/light-v10';
+const idmcStyle = 'mapbox://styles/togglecorp/cl50rwy0a002d14mo6w9zprio';
 
 const displacementItemKeySelector = (d: DisplacementData) => d.iso3;
 
@@ -513,7 +513,7 @@ function MapDashboard(props: Props) {
                 {pending && <PendingMessage className={styles.pending} />}
                 <div className={styles.leftContainer}>
                     <Map
-                        mapStyle={lightStyle}
+                        mapStyle={idmcStyle}
                         mapOptions={{
                             logoPosition: 'bottom-left',
                             zoom: 0.9,
