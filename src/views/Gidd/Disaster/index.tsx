@@ -572,7 +572,7 @@ function Disaster(props: Props) {
                         min={2008}
                         max={currentYear}
                         step={1}
-                        minDistance={1}
+                        minDistance={0}
                         onChange={setYears}
                         labelDescription={`${years[0]}-${years[1]}`}
                         value={years}
